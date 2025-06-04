@@ -20,6 +20,8 @@ def table_for_print_repos() -> PrettyTable:
     DIRTY_REPO: str = "D"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "U"
+    MODIFIED_FILES: str = "M"
+    STAGED_FILES: str = "S"
 
     table = PrettyTable(
         [
@@ -28,6 +30,8 @@ def table_for_print_repos() -> PrettyTable:
             DIRTY_REPO,
             HEADS,
             UNTRACKED_FILES,
+            MODIFIED_FILES,
+            STAGED_FILES,
         ]
     )
     table.align[DIR] = "l"
@@ -66,6 +70,9 @@ def print_repos(repos: list[str]) -> None:
             for hn in head_names
         ]
 
+        staged_files = len(repo.index.diff("HEAD")) if repo else 0
+        modified_files = len(repo.index.diff(None)) if repo else 0
+
         repo_table.add_row(
             [
                 # Repo name
@@ -97,6 +104,8 @@ def print_repos(repos: list[str]) -> None:
                     if untracked_files
                     else ""
                 ),
+                str(modified_files) if modified_files else "",
+                str(staged_files) if staged_files else "",
             ]
         )
 
