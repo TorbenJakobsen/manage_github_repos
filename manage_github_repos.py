@@ -1,6 +1,6 @@
 import os
 
-from colorama import Fore, Style
+from colorama import Back, Fore, Style
 from colorama import init as colorama_init
 from git import InvalidGitRepositoryError, Repo
 from prettytable import PrettyTable
@@ -19,7 +19,6 @@ def table_for_print_repos() -> PrettyTable:
     IS_REPO: str = "?"
     DIRTY_REPO: str = "D"
     HEADS = "Heads"
-    HEAD = "Head"
     UNTRACKED_FILES: str = "U"
 
     table = PrettyTable(
@@ -28,7 +27,6 @@ def table_for_print_repos() -> PrettyTable:
             IS_REPO,
             DIRTY_REPO,
             HEADS,
-            HEAD,
             UNTRACKED_FILES,
         ]
     )
@@ -36,7 +34,6 @@ def table_for_print_repos() -> PrettyTable:
     table.align[IS_REPO] = "c"
     table.align[DIRTY_REPO] = "c"
     table.align[HEADS] = "l"
-    table.align[HEAD] = "l"
     table.align[UNTRACKED_FILES] = "r"
     return table
 
@@ -57,22 +54,49 @@ def print_repos(repos: list[str]) -> None:
             is_valid_repo = repo is not None
 
         untracked_files = len(repo.untracked_files) if is_valid_repo else 0
-        heads = repo.heads if is_valid_repo else []
-        head_names = [h.name for h in heads]
-        # a_head_names = [h. for h in heads]
+        repo_heads = repo.heads if is_valid_repo else []
+        head_names = sorted([h.name for h in repo_heads])
+        active_branch = repo.active_branch.name if repo else ""
+        a_head_names = [
+            (
+                f"{Fore.GREEN}{Style.BRIGHT}{hn}{Fore.RESET}"
+                if hn == active_branch
+                else f"{Fore.WHITE}{hn}{Fore.RESET}"
+            )
+            for hn in head_names
+        ]
 
         repo_table.add_row(
             [
                 # Repo name
-                repo_name if is_valid_repo else f"{Fore.RED}{repo_name}{Fore.RESET}",
+                (
+                    f"{Fore.RED}{Style.BRIGHT}{repo_name}{Fore.RESET}"
+                    if not is_valid_repo
+                    else (
+                        f"{Fore.YELLOW}{Style.BRIGHT}{repo_name}{Fore.RESET}"
+                        if repo.is_dirty() or untracked_files
+                        else f"{repo_name}"
+                    )
+                ),
                 # IS_REPO
-                "X" if is_valid_repo else "",
+                (
+                    f"{Fore.GREEN}{Style.BRIGHT}Y{Fore.RESET}"
+                    if is_valid_repo
+                    else f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}"
+                ),
                 # Dirty repo
-                f"{Fore.RED}D{Fore.RESET}" if (repo and repo.is_dirty()) else "",
+                (
+                    f"{Fore.RED}{Style.BRIGHT}D{Fore.RESET}"
+                    if (repo and repo.is_dirty())
+                    else ""
+                ),
                 #
-                ",".join(head_names),
-                str(repo.head) if is_valid_repo else "",
-                f"{Fore.RED}{untracked_files}{Fore.RESET}" if untracked_files else "",
+                ", ".join(a_head_names),
+                (
+                    f"{Fore.RED}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                    if untracked_files
+                    else ""
+                ),
             ]
         )
 
