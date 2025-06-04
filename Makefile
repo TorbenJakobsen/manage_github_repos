@@ -79,4 +79,4 @@ format: venv
 
 .PHONY: run
 run: venv
-	$(PYTHON) matrix_rain.py -c blue -H red
+	$(PYTHON) manage_github_repos.py
