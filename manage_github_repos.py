@@ -1,35 +1,95 @@
 import os
 
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from colorama import init as colorama_init
 from git import InvalidGitRepositoryError, Repo
 from prettytable import PrettyTable
-from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # For GitPython https://gitpython.readthedocs.io/en/stable/intro.html
 
-##
-## TODO For now, it is assumed the git host server is GitHub
-##
+# TODO For now, it is assumed the git host server is GitHub
 
 # TODO Use of colors assume dark (black) background
+
+"""
+    {
+        "repo_url": "",
+        "local_dir": "",
+    },
+"""
+
+
+repos = [
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/decimaldate",
+        "local_dir": "decimaldate",
+    },
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/manage_configuration_with_stow",
+        "local_dir": "manage_configuration_with_stow",
+    },
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/matrix_digital_rain",
+        "local_dir": "matrix_digital_rain",
+    },
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/manage_github_repos",
+        "local_dir": "manage_github_repos",
+    },
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/setup_fedora_linux_as_workstation",
+        "local_dir": "setup_fedora_linux_as_workstation",
+    },
+    {
+        "repo_url": "https://github.com/TorbenJakobsen/setup_terminal_and_shell",
+        "local_dir": "setup_terminal_and_shell",
+    },
+]
+
+
+def is_local_dir_managed(local_dir: str) -> bool:
+    for r in repos:
+        if r["local_dir"] == local_dir:
+            return True
+    return False
+
+
+def clone_managed_repos() -> None:
+    """
+    _summary_
+    """
+    # EnvRepo(
+    #    repo_url="https://github.com/TorbenJakobsen/manage_github_repos",
+    #    local_dir="manage_github_repos",
+    # )
+
+    for r in repos:
+        repo_url = r["repo_url"]
+        local_dir = f'../{r["local_dir"]}'
+        if not os.path.isdir(local_dir):
+            print(f"Cloning into '{local_dir}'")
+            _ = Repo.clone_from(repo_url, local_dir)
 
 
 def table_for_print_repos() -> PrettyTable:
     """Return an empty table with captions and alignment."""
 
+    # Table headers
+
     DIR: str = "Directory"
     IS_REPO: str = "?"
-    DIRTY_REPO: str = "D"
+    MANAGED = "MAN"
+    DIRTY_REPO: str = "Dty"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "U"
-    MODIFIED_FILES: str = "M"
+    MODIFIED_FILES: str = "MOD"
     STAGED_FILES: str = "S"
 
     table = PrettyTable(
         [
             DIR,
             IS_REPO,
+            MANAGED,
             DIRTY_REPO,
             HEADS,
             UNTRACKED_FILES,
@@ -39,6 +99,7 @@ def table_for_print_repos() -> PrettyTable:
     )
     table.align[DIR] = "l"
     table.align[IS_REPO] = "c"
+    table.align[MANAGED] = "c"
     table.align[DIRTY_REPO] = "c"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
@@ -94,6 +155,8 @@ def print_repos(repos: list[str]) -> None:
                     if is_valid_repo
                     else f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}"
                 ),
+                # Managed
+                ("M" if is_local_dir_managed(repo_name) else ""),
                 # Dirty repo
                 (
                     f"{Fore.RED}{Style.BRIGHT}D{Fore.RESET}"
@@ -115,14 +178,11 @@ def print_repos(repos: list[str]) -> None:
     print(repo_table)
 
 
-def clone_dir():
-    repo_url = "https://github.com/TorbenJakobsen/manage_github_repos"
-    local_dir = "manage_github_repos"
-    repo = Repo.clone_from(repo_url, local_dir)
-
-
 def main():
     colorama_init()
+
+    clone_managed_repos()
+
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
     print_repos(sorted_dirs)
 
