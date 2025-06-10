@@ -8,6 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # For GitPython https://gitpython.readthedocs.io/en/stable/intro.html
 
+##
+## TODO For now, it is assumed the git host server is GitHub
+##
 
 # TODO Use of colors assume dark (black) background
 
@@ -110,6 +113,12 @@ def print_repos(repos: list[str]) -> None:
         )
 
     print(repo_table)
+
+
+def clone_dir():
+    repo_url = "https://github.com/TorbenJakobsen/manage_github_repos"
+    local_dir = "manage_github_repos"
+    repo = Repo.clone_from(repo_url, local_dir)
 
 
 def main():
