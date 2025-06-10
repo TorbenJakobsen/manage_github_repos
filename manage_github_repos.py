@@ -78,12 +78,12 @@ def table_for_print_repos() -> PrettyTable:
 
     DIR: str = "Directory"
     IS_REPO: str = "?"
-    MANAGED = "MAN"
+    MANAGED = "Man"
     DIRTY_REPO: str = "Dty"
     HEADS = "Heads"
-    UNTRACKED_FILES: str = "U"
-    MODIFIED_FILES: str = "MOD"
-    STAGED_FILES: str = "S"
+    UNTRACKED_FILES: str = "Unt"
+    MODIFIED_FILES: str = "Mod"
+    STAGED_FILES: str = "Stg"
 
     table = PrettyTable(
         [
@@ -103,6 +103,8 @@ def table_for_print_repos() -> PrettyTable:
     table.align[DIRTY_REPO] = "c"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
+    table.align[MODIFIED_FILES] = "r"
+    table.align[STAGED_FILES] = "r"
     return table
 
 
@@ -156,22 +158,36 @@ def print_repos(repos: list[str]) -> None:
                     else f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}"
                 ),
                 # Managed
-                ("M" if is_local_dir_managed(repo_name) else ""),
+                (
+                    f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
+                    if is_local_dir_managed(repo_name)
+                    else ""
+                ),
                 # Dirty repo
                 (
-                    f"{Fore.RED}{Style.BRIGHT}D{Fore.RESET}"
+                    f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
                     if (repo and repo.is_dirty())
                     else ""
                 ),
-                #
+                # Untracked
                 ", ".join(a_head_names),
                 (
-                    f"{Fore.RED}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                    f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
                     if untracked_files
                     else ""
                 ),
-                str(modified_files) if modified_files else "",
-                str(staged_files) if staged_files else "",
+                # Modified
+                (
+                    f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
+                    if modified_files
+                    else ""
+                ),
+                # Staged
+                (
+                    f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
+                    if staged_files
+                    else ""
+                ),
             ]
         )
 
