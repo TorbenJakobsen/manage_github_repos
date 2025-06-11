@@ -11,64 +11,38 @@ from prettytable import PrettyTable
 
 # TODO Use of colors assume dark (black) background
 
-"""
-    {
-        "repo_url": "",
-        "local_dir": "",
-    },
-"""
+
+def read_repos_from_file(filename: str) -> list[dict[str, str]]:
+    with open(filename) as f:
+        lines: list[str] = [
+            line
+            for line in [line.strip() for line in f]
+            if not line.startswith("#")  # no comments
+            if not len(line) == 0  # no empty lines
+        ]
+        return [
+            {"local_dir": t[0], "repo_url": t[1]}
+            for t in [line.split(",") for line in lines]
+        ]
 
 
-repos = [
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/decimaldate",
-        "local_dir": "decimaldate",
-    },
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/manage_configuration_with_stow",
-        "local_dir": "manage_configuration_with_stow",
-    },
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/matrix_digital_rain",
-        "local_dir": "matrix_digital_rain",
-    },
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/manage_github_repos",
-        "local_dir": "manage_github_repos",
-    },
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/setup_fedora_linux_as_workstation",
-        "local_dir": "setup_fedora_linux_as_workstation",
-    },
-    {
-        "repo_url": "https://github.com/TorbenJakobsen/setup_terminal_and_shell",
-        "local_dir": "setup_terminal_and_shell",
-    },
-]
+REPOS: list[dict[str, str]] = read_repos_from_file("repos.cfg")
 
 
 def is_local_dir_managed(local_dir: str) -> bool:
-    for r in repos:
+    for r in REPOS:
         if r["local_dir"] == local_dir:
             return True
     return False
 
 
 def clone_managed_repos() -> None:
-    """
-    _summary_
-    """
-    # EnvRepo(
-    #    repo_url="https://github.com/TorbenJakobsen/manage_github_repos",
-    #    local_dir="manage_github_repos",
-    # )
-
-    for r in repos:
+    for r in REPOS:
         repo_url = r["repo_url"]
         local_dir = f'../{r["local_dir"]}'
         if not os.path.isdir(local_dir):
             print(f"Cloning into '{local_dir}'")
-            _ = Repo.clone_from(repo_url, local_dir)
+            repo_clone = Repo.clone_from(repo_url, local_dir)
 
 
 def table_for_print_repos() -> PrettyTable:

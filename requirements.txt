@@ -1,9 +1,4 @@
 colorama
 types-colorama
-
 prettytable
-
-pydantic
-pydantic-settings
-
 GitPython
