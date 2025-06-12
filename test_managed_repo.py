@@ -1,5 +1,3 @@
-import pytest
-
 from manage_github_repos import ManagedRepo
 
 repo_a: ManagedRepo = ManagedRepo(local_dir="a", repo_url="https://www.example.com/a")

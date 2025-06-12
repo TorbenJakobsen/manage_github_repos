@@ -1,6 +1,6 @@
 import os
 from functools import total_ordering
-from typing import Any, Literal, NoReturn, Self, TypeAlias
+from typing import Any, Self
 
 from colorama import Fore, Style
 from colorama import init as colorama_init
@@ -44,11 +44,13 @@ class ManagedRepo(BaseModel):
 
 class ManagedRepoList:
 
+    @staticmethod
     def __read_lines_from_file(filename: str) -> list[str]:
         """All lines from a file."""
         with open(filename) as f:
             return [line for line in f]
 
+    @staticmethod
     def __read_repos_from_csv_file(filename: str) -> list[ManagedRepo]:
         """All repositories in CSV file."""
         all_lines_read: list[str] = ManagedRepoList.__read_lines_from_file(filename)
@@ -68,6 +70,7 @@ class ManagedRepoList:
             for t in [line.split(",") for line in clean_lines]
         ]
 
+    @staticmethod
     def read_repos_from_csv_file(filename: str):
         repos = ManagedRepoList.__read_repos_from_csv_file(filename)
         return ManagedRepoList(repos)
