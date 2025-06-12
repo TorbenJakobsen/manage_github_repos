@@ -110,7 +110,7 @@ class ManagedRepoList:
 # TODO Use of colors assume dark (black) background
 
 
-def table_for_print_repos() -> PrettyTable:
+def prepare_table_for_print_repos() -> PrettyTable:
     """Return an empty table (header) with captions and alignment."""
 
     # Table headers
@@ -151,7 +151,7 @@ def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
 ) -> None:
-    repo_table: PrettyTable = table_for_print_repos()
+    repo_table: PrettyTable = prepare_table_for_print_repos()
 
     for dir_name in dir_list:
 
@@ -163,10 +163,8 @@ def print_repos(
         if repo:
             staged_files = len(repo.index.diff("HEAD"))
             modified_files = len(repo.index.diff(None))
-
             untracked_files = len(repo.untracked_files)
-            repo_heads = repo.heads
-            head_names = sorted([h.name for h in repo_heads])
+            head_names = sorted([h.name for h in repo.heads])
             active_branch = repo.active_branch.name
             a_head_names = [
                 (
@@ -176,6 +174,8 @@ def print_repos(
                 )
                 for hn in head_names
             ]
+
+            # ---
 
             repo_table.add_row(
                 [
