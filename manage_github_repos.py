@@ -4,52 +4,68 @@ from colorama import Fore, Style
 from colorama import init as colorama_init
 from git import InvalidGitRepositoryError, Repo
 from prettytable import PrettyTable
+from pydantic import BaseModel
 
-# For GitPython https://gitpython.readthedocs.io/en/stable/intro.html
+# For Pydantic: https://docs.pydantic.dev/latest/
+# For GitPython: https://gitpython.readthedocs.io/en/stable/intro.html
+
+# -----------------------
+
+
+class RepoValueObject(BaseModel):
+    local_dir: str
+    repo_url: str
+
+
+# -----------------------
 
 # TODO For now, it is assumed the git host server is GitHub
 
 # TODO Use of colors assume dark (black) background
 
 
-def read_repos_from_file(filename: str) -> list[dict[str, str]]:
+def read_repos_from_csv_file(filename: str) -> list[RepoValueObject]:
     with open(filename) as f:
-        lines: list[str] = [
-            line
-            for line in [line.strip() for line in f]
-            if not line.startswith("#")  # no comments
-            if not len(line) == 0  # no empty lines
-        ]
         return [
-            {
-                "local_dir": t[0].strip(),
-                "repo_url": t[1].strip(),
-            }
-            for t in [line.split(",") for line in lines]
+            RepoValueObject(
+                local_dir=t[0].strip(),
+                repo_url=t[1].strip(),
+            )
+            for t in [
+                line.split(",")
+                # for lines - not comment and not empty
+                for line in [
+                    line
+                    for line in [line.strip() for line in f]
+                    if not line.startswith("#")  # no comments
+                    if not len(line) == 0  # no empty lines
+                ]
+            ]
         ]
 
 
-REPOS: list[dict[str, str]] = read_repos_from_file("repos.csv")
-
-
-def is_local_dir_managed(local_dir: str) -> bool:
-    for r in REPOS:
-        if r["local_dir"] == local_dir:
+def is_local_dir_managed(
+    local_dir: str,
+    repos: list[RepoValueObject],
+) -> bool:
+    for r in repos:
+        if r.local_dir == local_dir:
             return True
     return False
 
 
-def clone_managed_repos() -> None:
-    for r in REPOS:
-        repo_url = r["repo_url"]
-        local_dir = f'../{r["local_dir"]}'
+def clone_managed_repos(repos: list[RepoValueObject]) -> None:
+    """Traververse argument list and if any repository is not present (as a directory) then clone it."""
+    for r in repos:
+        repo_url: str = r.repo_url
+        local_dir: str = f"../{r.local_dir}"  # hardcode - use parent always
         if not os.path.isdir(local_dir):
             print(f"Cloning into '{local_dir}'")
-            repo_clone = Repo.clone_from(repo_url, local_dir)
+            _ = Repo.clone_from(repo_url, local_dir)
 
 
 def table_for_print_repos() -> PrettyTable:
-    """Return an empty table with captions and alignment."""
+    """Return an empty table (header) with captions and alignment."""
 
     # Table headers
 
@@ -57,7 +73,6 @@ def table_for_print_repos() -> PrettyTable:
     IS_REPO: str = "?"
     MANAGED = "Man"
     DIRTY_REPO: str = "Dty"
-    REMOTE_DIRTY = "RD"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
@@ -69,7 +84,6 @@ def table_for_print_repos() -> PrettyTable:
             IS_REPO,
             MANAGED,
             DIRTY_REPO,
-            REMOTE_DIRTY,
             HEADS,
             UNTRACKED_FILES,
             MODIFIED_FILES,
@@ -80,7 +94,6 @@ def table_for_print_repos() -> PrettyTable:
     table.align[IS_REPO] = "c"
     table.align[MANAGED] = "c"
     table.align[DIRTY_REPO] = "c"
-    table.align[REMOTE_DIRTY] = "c"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
@@ -88,12 +101,14 @@ def table_for_print_repos() -> PrettyTable:
     return table
 
 
-def print_repos(repos: list[str]) -> None:
+def print_repos(
+    dir_list: list[str],
+    repos: list[RepoValueObject],
+) -> None:
     repo_table: PrettyTable = table_for_print_repos()
 
-    for repo_name in repos:
+    for repo_name in dir_list:
 
-        # repo: Repo | None
         try:
             repo = Repo(f"/Users/torbenjakobsen/source/repos/Github/{repo_name}")
             # TODO Handle the need for absolute paths
@@ -119,9 +134,6 @@ def print_repos(repos: list[str]) -> None:
         staged_files = len(repo.index.diff("HEAD")) if repo else 0
         modified_files = len(repo.index.diff(None)) if repo else 0
 
-        remote_dirty: bool = False
-        # TODO
-
         repo_table.add_row(
             [
                 # Repo name
@@ -143,19 +155,13 @@ def print_repos(repos: list[str]) -> None:
                 # Managed
                 (
                     f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
-                    if is_local_dir_managed(repo_name)
+                    if is_local_dir_managed(repo_name, repos)
                     else ""
                 ),
                 # Dirty repo
                 (
                     f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
                     if (repo and repo.is_dirty())
-                    else ""
-                ),
-                # Remote Dirty
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
-                    if (repo and remote_dirty)
                     else ""
                 ),
                 # Untracked
@@ -183,13 +189,14 @@ def print_repos(repos: list[str]) -> None:
     print(repo_table)
 
 
-def main():
-    colorama_init()
+def main() -> None:
+    colorama_init()  # colors in terminal
 
-    clone_managed_repos()
+    repos: list[RepoValueObject] = read_repos_from_csv_file("repos.csv")
+    clone_managed_repos(repos)
 
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
-    print_repos(sorted_dirs)
+    print_repos(sorted_dirs, repos)
 
 
 if __name__ == "__main__":
