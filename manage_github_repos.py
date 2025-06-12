@@ -1,4 +1,6 @@
 import os
+from functools import total_ordering
+from typing import Any, Literal, NoReturn, Self, TypeAlias
 
 from colorama import Fore, Style
 from colorama import init as colorama_init
@@ -12,9 +14,83 @@ from pydantic import BaseModel
 # -----------------------
 
 
-class RepoValueObject(BaseModel):
+@total_ordering
+class ManagedRepo(BaseModel):
     local_dir: str
     repo_url: str
+
+    def _is_valid_operand(self: Self, other: Any):
+        return hasattr(other, "local_dir") and hasattr(other, "repo_url")
+
+    def __eq__(self: Self, other: Any):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return (self.local_dir.lower(), self.repo_url.lower()) == (
+            other.local_dir.lower(),
+            other.repo_url.lower(),
+        )
+
+    def __lt__(self: Self, other: Any):
+        if not self._is_valid_operand(other):
+            return NotImplemented
+        return (self.local_dir.lower(), self.repo_url.lower()) < (
+            other.local_dir.lower(),
+            other.repo_url.lower(),
+        )
+
+
+# -----------------------
+
+
+class ManagedRepoList:
+
+    def __read_lines_from_file(filename: str) -> list[str]:
+        """All lines from a file."""
+        with open(filename) as f:
+            return [line for line in f]
+
+    def __read_repos_from_csv_file(filename: str) -> list[ManagedRepo]:
+        """All repositories in CSV file."""
+        all_lines_read: list[str] = ManagedRepoList.__read_lines_from_file(filename)
+        # Remove blank lines and comments
+        clean_lines: list[str] = [
+            line
+            for line in [line.strip() for line in all_lines_read]
+            if not line.startswith("#")  # no comments
+            if not len(line) == 0  # no empty lines
+        ]
+        # Process CSV lines as `local_dir,repo_url`
+        return [
+            ManagedRepo(
+                local_dir=t[0].strip(),
+                repo_url=t[1].strip(),
+            )
+            for t in [line.split(",") for line in clean_lines]
+        ]
+
+    def read_repos_from_csv_file(filename: str):
+        repos = ManagedRepoList.__read_repos_from_csv_file(filename)
+        return ManagedRepoList(repos)
+
+    # ---
+
+    def __init__(self: Self, repos: list[ManagedRepo]):
+        self._repos = repos
+
+    def __len__(self: Self) -> int:
+        return len(self._repos)
+
+    def __iter__(self: Self):
+        return self._repos.__iter__()
+
+    def is_local_dir_managed(
+        self: Self,
+        local_dir: str,
+    ) -> bool:
+        for r in self._repos:
+            if r.local_dir == local_dir:
+                return True
+        return False
 
 
 # -----------------------
@@ -24,37 +100,7 @@ class RepoValueObject(BaseModel):
 # TODO Use of colors assume dark (black) background
 
 
-def read_repos_from_csv_file(filename: str) -> list[RepoValueObject]:
-    with open(filename) as f:
-        return [
-            RepoValueObject(
-                local_dir=t[0].strip(),
-                repo_url=t[1].strip(),
-            )
-            for t in [
-                line.split(",")
-                # for lines - not comment and not empty
-                for line in [
-                    line
-                    for line in [line.strip() for line in f]
-                    if not line.startswith("#")  # no comments
-                    if not len(line) == 0  # no empty lines
-                ]
-            ]
-        ]
-
-
-def is_local_dir_managed(
-    local_dir: str,
-    repos: list[RepoValueObject],
-) -> bool:
-    for r in repos:
-        if r.local_dir == local_dir:
-            return True
-    return False
-
-
-def clone_managed_repos(repos: list[RepoValueObject]) -> None:
+def clone_managed_repos(repos: ManagedRepoList) -> None:
     """Traververse argument list and if any repository is not present (as a directory) then clone it."""
     for r in repos:
         repo_url: str = r.repo_url
@@ -103,7 +149,7 @@ def table_for_print_repos() -> PrettyTable:
 
 def print_repos(
     dir_list: list[str],
-    repos: list[RepoValueObject],
+    repos: ManagedRepoList,
 ) -> None:
     repo_table: PrettyTable = table_for_print_repos()
 
@@ -155,7 +201,7 @@ def print_repos(
                 # Managed
                 (
                     f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
-                    if is_local_dir_managed(repo_name, repos)
+                    if repos.is_local_dir_managed(repo_name)
                     else ""
                 ),
                 # Dirty repo
@@ -199,7 +245,7 @@ def main() -> None:
     # colors in terminal
     colorama_init()
 
-    repos: list[RepoValueObject] = read_repos_from_csv_file("repos.csv")
+    repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file("repos.csv")
     clone_managed_repos(repos)
 
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
