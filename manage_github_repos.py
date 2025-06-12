@@ -186,7 +186,7 @@ def print_repos(
                         else f"{dir_name}"
                     ),
                     # IS_REPO
-                    f"{Fore.GREEN}{Style.BRIGHT}Y{Fore.RESET}",
+                    "",
                     # Managed
                     (
                         f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
