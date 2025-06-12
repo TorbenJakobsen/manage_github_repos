@@ -170,7 +170,7 @@ def print_repos(
             untracked_files = len(repo.untracked_files)
             head_names = sorted([h.name for h in repo.heads])
             active_branch = repo.active_branch.name
-            a_head_names = [
+            colored_head_names = [
                 (
                     f"{Fore.GREEN}{hn}{Fore.RESET}"
                     if hn == active_branch
@@ -212,7 +212,7 @@ def print_repos(
                         else ""
                     ),
                     # Head names
-                    ", ".join(a_head_names),
+                    ", ".join(colored_head_names),
                     # Untracked
                     (
                         (
@@ -277,10 +277,11 @@ def main() -> None:
         print("File 'repos.csv' not found - copy from example.csv")
         return
 
-    # colors in terminal
+    # Colors in terminal
     colorama_init()
 
     repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file("repos.csv")
+    # Observe: Repos will be created in parent directory
     repos.clone_managed_repos()
 
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
