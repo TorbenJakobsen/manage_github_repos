@@ -161,6 +161,7 @@ def print_repos(
             repo = None
 
         if repo:
+            local_managed = repos.is_local_dir_managed(dir_name)
             staged_files = len(repo.index.diff("HEAD"))
             modified_files = len(repo.index.diff(None))
             untracked_files = len(repo.untracked_files)
@@ -168,7 +169,7 @@ def print_repos(
             active_branch = repo.active_branch.name
             a_head_names = [
                 (
-                    f"{Fore.GREEN}{Style.BRIGHT}{hn}{Fore.RESET}"
+                    f"{Fore.GREEN}{hn}{Fore.RESET}"
                     if hn == active_branch
                     else f"{Fore.WHITE}{hn}{Fore.RESET}"
                 )
@@ -181,7 +182,11 @@ def print_repos(
                 [
                     # Repo name
                     (
-                        f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}{dir_name}{Fore.RESET}"
+                        )
                         if repo.is_dirty() or untracked_files
                         else f"{dir_name}"
                     ),
@@ -190,12 +195,16 @@ def print_repos(
                     # Managed
                     (
                         f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
-                        if repos.is_local_dir_managed(dir_name)
+                        if local_managed
                         else ""
                     ),
                     # Dirty repo
                     (
-                        f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}D{Fore.RESET}"
+                        )
                         if repo.is_dirty()
                         else ""
                     ),
@@ -203,19 +212,31 @@ def print_repos(
                     ", ".join(a_head_names),
                     # Untracked
                     (
-                        f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}{untracked_files}{Fore.RESET}"
+                        )
                         if untracked_files
                         else ""
                     ),
                     # Modified
                     (
-                        f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}{modified_files}{Fore.RESET}"
+                        )
                         if modified_files
                         else ""
                     ),
                     # Staged
                     (
-                        f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}{staged_files}{Fore.RESET}"
+                        )
                         if staged_files
                         else ""
                     ),
