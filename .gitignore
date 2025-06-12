@@ -1,5 +1,7 @@
 .DS_Store
+
 __pycache__/
 venv
-repos.cfg
-!example.cfg
+
+repos.csv
+!example.csv
