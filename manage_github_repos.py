@@ -92,22 +92,22 @@ class ManagedRepoList:
                 return True
         return False
 
+    def clone_managed_repos(self: Self) -> None:
+        """Traververse initial argument list and if any repository
+        is not present (as a directory) then clone it."""
+        for repo in self._repos:
+            repo_url: str = repo.repo_url
+            local_dir: str = f"../{repo.local_dir}"  # hardcode - use parent always
+            if not os.path.isdir(local_dir):
+                print(f"Cloning into '{local_dir}'")
+                _ = Repo.clone_from(repo_url, local_dir)
+
 
 # -----------------------
 
 # TODO For now, it is assumed the git host server is GitHub
 
 # TODO Use of colors assume dark (black) background
-
-
-def clone_managed_repos(repos: ManagedRepoList) -> None:
-    """Traververse argument list and if any repository is not present (as a directory) then clone it."""
-    for r in repos:
-        repo_url: str = r.repo_url
-        local_dir: str = f"../{r.local_dir}"  # hardcode - use parent always
-        if not os.path.isdir(local_dir):
-            print(f"Cloning into '{local_dir}'")
-            _ = Repo.clone_from(repo_url, local_dir)
 
 
 def table_for_print_repos() -> PrettyTable:
@@ -153,84 +153,95 @@ def print_repos(
 ) -> None:
     repo_table: PrettyTable = table_for_print_repos()
 
-    for repo_name in dir_list:
+    for dir_name in dir_list:
 
         try:
-            repo = Repo(f"/Users/torbenjakobsen/source/repos/Github/{repo_name}")
-            # TODO Handle the need for absolute paths
-            # TODO Handle hardcoded paths
+            repo = Repo(f"../{dir_name}")
         except InvalidGitRepositoryError:
             repo = None
-        finally:
-            is_valid_repo = repo is not None
 
-        untracked_files = len(repo.untracked_files) if is_valid_repo else 0
-        repo_heads = repo.heads if is_valid_repo else []
-        head_names = sorted([h.name for h in repo_heads])
-        active_branch = repo.active_branch.name if repo else ""
-        a_head_names = [
-            (
-                f"{Fore.GREEN}{Style.BRIGHT}{hn}{Fore.RESET}"
-                if hn == active_branch
-                else f"{Fore.WHITE}{hn}{Fore.RESET}"
-            )
-            for hn in head_names
-        ]
+        if repo:
+            staged_files = len(repo.index.diff("HEAD"))
+            modified_files = len(repo.index.diff(None))
 
-        staged_files = len(repo.index.diff("HEAD")) if repo else 0
-        modified_files = len(repo.index.diff(None)) if repo else 0
-
-        repo_table.add_row(
-            [
-                # Repo name
+            untracked_files = len(repo.untracked_files)
+            repo_heads = repo.heads
+            head_names = sorted([h.name for h in repo_heads])
+            active_branch = repo.active_branch.name
+            a_head_names = [
                 (
-                    f"{Fore.RED}{Style.BRIGHT}{repo_name}{Fore.RESET}"
-                    if not is_valid_repo
-                    else (
-                        f"{Fore.YELLOW}{Style.BRIGHT}{repo_name}{Fore.RESET}"
-                        if repo.is_dirty() or untracked_files
-                        else f"{repo_name}"
-                    )
-                ),
-                # IS_REPO
-                (
-                    f"{Fore.GREEN}{Style.BRIGHT}Y{Fore.RESET}"
-                    if is_valid_repo
-                    else f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}"
-                ),
-                # Managed
-                (
-                    f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
-                    if repos.is_local_dir_managed(repo_name)
-                    else ""
-                ),
-                # Dirty repo
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
-                    if (repo and repo.is_dirty())
-                    else ""
-                ),
-                # Untracked
-                ", ".join(a_head_names),
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
-                    if untracked_files
-                    else ""
-                ),
-                # Modified
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
-                    if modified_files
-                    else ""
-                ),
-                # Staged
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
-                    if staged_files
-                    else ""
-                ),
+                    f"{Fore.GREEN}{Style.BRIGHT}{hn}{Fore.RESET}"
+                    if hn == active_branch
+                    else f"{Fore.WHITE}{hn}{Fore.RESET}"
+                )
+                for hn in head_names
             ]
-        )
+
+            repo_table.add_row(
+                [
+                    # Repo name
+                    (
+                        f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
+                        if repo.is_dirty() or untracked_files
+                        else f"{dir_name}"
+                    ),
+                    # IS_REPO
+                    f"{Fore.GREEN}{Style.BRIGHT}Y{Fore.RESET}",
+                    # Managed
+                    (
+                        f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
+                        if repos.is_local_dir_managed(dir_name)
+                        else ""
+                    ),
+                    # Dirty repo
+                    (
+                        f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
+                        if repo.is_dirty()
+                        else ""
+                    ),
+                    # Head names
+                    ", ".join(a_head_names),
+                    # Untracked
+                    (
+                        f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                        if untracked_files
+                        else ""
+                    ),
+                    # Modified
+                    (
+                        f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
+                        if modified_files
+                        else ""
+                    ),
+                    # Staged
+                    (
+                        f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
+                        if staged_files
+                        else ""
+                    ),
+                ]
+            )
+        else:
+            repo_table.add_row(
+                [
+                    # Repo name
+                    f"{Fore.RED}{Style.BRIGHT}{dir_name}{Fore.RESET}",
+                    # IS_REPO
+                    f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}",
+                    # Managed
+                    "",
+                    # Dirty repo
+                    "",
+                    # Heads
+                    "",
+                    # Untracked
+                    "",
+                    # Modified
+                    "",
+                    # Staged
+                    "",
+                ]
+            )
 
     print(repo_table)
 
@@ -246,7 +257,7 @@ def main() -> None:
     colorama_init()
 
     repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file("repos.csv")
-    clone_managed_repos(repos)
+    repos.clone_managed_repos()
 
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
     print_repos(sorted_dirs, repos)
