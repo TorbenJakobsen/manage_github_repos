@@ -21,12 +21,15 @@ def read_repos_from_file(filename: str) -> list[dict[str, str]]:
             if not len(line) == 0  # no empty lines
         ]
         return [
-            {"local_dir": t[0], "repo_url": t[1]}
+            {
+                "local_dir": t[0].strip(),
+                "repo_url": t[1].strip(),
+            }
             for t in [line.split(",") for line in lines]
         ]
 
 
-REPOS: list[dict[str, str]] = read_repos_from_file("repos.cfg")
+REPOS: list[dict[str, str]] = read_repos_from_file("repos.csv")
 
 
 def is_local_dir_managed(local_dir: str) -> bool:
@@ -54,6 +57,7 @@ def table_for_print_repos() -> PrettyTable:
     IS_REPO: str = "?"
     MANAGED = "Man"
     DIRTY_REPO: str = "Dty"
+    REMOTE_DIRTY = "RD"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
@@ -65,6 +69,7 @@ def table_for_print_repos() -> PrettyTable:
             IS_REPO,
             MANAGED,
             DIRTY_REPO,
+            REMOTE_DIRTY,
             HEADS,
             UNTRACKED_FILES,
             MODIFIED_FILES,
@@ -75,6 +80,7 @@ def table_for_print_repos() -> PrettyTable:
     table.align[IS_REPO] = "c"
     table.align[MANAGED] = "c"
     table.align[DIRTY_REPO] = "c"
+    table.align[REMOTE_DIRTY] = "c"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
@@ -87,7 +93,7 @@ def print_repos(repos: list[str]) -> None:
 
     for repo_name in repos:
 
-        repo: Repo | None
+        # repo: Repo | None
         try:
             repo = Repo(f"/Users/torbenjakobsen/source/repos/Github/{repo_name}")
             # TODO Handle the need for absolute paths
@@ -112,6 +118,9 @@ def print_repos(repos: list[str]) -> None:
 
         staged_files = len(repo.index.diff("HEAD")) if repo else 0
         modified_files = len(repo.index.diff(None)) if repo else 0
+
+        remote_dirty: bool = False
+        # TODO
 
         repo_table.add_row(
             [
@@ -141,6 +150,12 @@ def print_repos(repos: list[str]) -> None:
                 (
                     f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
                     if (repo and repo.is_dirty())
+                    else ""
+                ),
+                # Remote Dirty
+                (
+                    f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
+                    if (repo and remote_dirty)
                     else ""
                 ),
                 # Untracked
