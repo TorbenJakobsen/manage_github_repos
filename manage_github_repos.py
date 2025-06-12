@@ -190,7 +190,14 @@ def print_repos(
 
 
 def main() -> None:
-    colorama_init()  # colors in terminal
+
+    # Sanity checks
+    if not os.path.isdir("repos.csv"):
+        print("File 'repos.csv' not found")
+        return
+
+    # colors in terminal
+    colorama_init()
 
     repos: list[RepoValueObject] = read_repos_from_csv_file("repos.csv")
     clone_managed_repos(repos)
