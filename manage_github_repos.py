@@ -192,8 +192,8 @@ def print_repos(
 def main() -> None:
 
     # Sanity checks
-    if not os.path.isdir("repos.csv"):
-        print("File 'repos.csv' not found")
+    if not os.path.exists("repos.csv"):
+        print("File 'repos.csv' not found - copy from example.csv")
         return
 
     # colors in terminal
