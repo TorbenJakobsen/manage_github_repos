@@ -164,16 +164,16 @@ def print_repos(
             repo = None
 
         if repo:
-            local_managed = repos.is_local_dir_managed(dir_name)
-            staged_files = len(repo.index.diff("HEAD"))
-            modified_files = len(repo.index.diff(None))
-            untracked_files = len(repo.untracked_files)
-            head_names = sorted([h.name for h in repo.heads])
-            active_branch = repo.active_branch.name
-            colored_head_names = [
+            local_managed: bool = repos.is_local_dir_managed(dir_name)
+            staged_files: int = len(repo.index.diff("HEAD"))
+            modified_files: int = len(repo.index.diff(None))
+            untracked_files: int = len(repo.untracked_files)
+            head_names: list[str] = sorted([h.name for h in repo.heads])
+            active_branch_name: str = repo.active_branch.name
+            colored_head_names: list[str] = [
                 (
                     f"{Fore.GREEN}{hn}{Fore.RESET}"
-                    if hn == active_branch
+                    if hn == active_branch_name
                     else f"{Fore.WHITE}{hn}{Fore.RESET}"
                 )
                 for hn in head_names
@@ -280,12 +280,14 @@ def main() -> None:
     # Colors in terminal
     colorama_init()
 
-    repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file("repos.csv")
+    managed_repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file(
+        "repos.csv"
+    )
     # Observe: Repos will be created in parent directory
-    repos.clone_managed_repos()
+    managed_repos.clone_managed_repos()
 
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
-    print_repos(sorted_dirs, repos)
+    print_repos(sorted_dirs, managed_repos)
 
 
 if __name__ == "__main__":
