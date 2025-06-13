@@ -120,8 +120,8 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     DIR: str = "Directory"
     IS_REPO: str = "?"
-    MANAGED = "Man"
-    DIRTY_REPO: str = "Dty"
+    MANAGED = "M"
+    DIRTY_REPO: str = "D"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
@@ -129,25 +129,28 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     table = PrettyTable(
         [
-            DIR,
-            IS_REPO,
             MANAGED,
+            IS_REPO,
             DIRTY_REPO,
-            HEADS,
+            DIR,
             UNTRACKED_FILES,
             MODIFIED_FILES,
             STAGED_FILES,
+            HEADS,
         ]
     )
-    table.align[DIR] = "l"
-    table.align[IS_REPO] = "c"
     table.align[MANAGED] = "c"
+    table.align[IS_REPO] = "c"
     table.align[DIRTY_REPO] = "c"
+    table.align[DIR] = "l"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
     table.align[STAGED_FILES] = "r"
     return table
+
+
+RED_UNDERSCORE: str = f"{Fore.RED}{Style.BRIGHT}_{Fore.RESET}"
 
 
 def print_repos(
@@ -172,35 +175,25 @@ def print_repos(
             active_branch_name: str = repo.active_branch.name
             colored_head_names: list[str] = [
                 (
-                    f"{Fore.GREEN}{hn}{Fore.RESET}"
-                    if hn == active_branch_name
-                    else f"{Fore.WHITE}{hn}{Fore.RESET}"
+                    f"{Fore.GREEN}{head_name}{Fore.RESET}"
+                    if head_name == active_branch_name
+                    else f"{Fore.WHITE}{head_name}{Fore.RESET}"
                 )
-                for hn in head_names
+                for head_name in head_names
             ]
 
             # ---
 
             repo_table.add_row(
                 [
-                    # Repo name
-                    (
-                        (
-                            f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
-                            if local_managed
-                            else f"{Fore.BLUE}{dir_name}{Fore.RESET}"
-                        )
-                        if repo.is_dirty() or untracked_files
-                        else f"{dir_name}"
-                    ),
-                    # IS_REPO
-                    "",
                     # Managed
                     (
                         f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
                         if local_managed
                         else ""
                     ),
+                    # Is repo
+                    "",
                     # Dirty repo
                     (
                         (
@@ -211,8 +204,16 @@ def print_repos(
                         if repo.is_dirty()
                         else ""
                     ),
-                    # Head names
-                    ", ".join(colored_head_names),
+                    # Repo name
+                    (
+                        (
+                            f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
+                            if local_managed
+                            else f"{Fore.BLUE}{dir_name}{Fore.RESET}"
+                        )
+                        if repo.is_dirty() or untracked_files
+                        else f"{dir_name}"
+                    ),
                     # Untracked
                     (
                         (
@@ -243,27 +244,29 @@ def print_repos(
                         if staged_files
                         else ""
                     ),
+                    # Head names
+                    ", ".join(colored_head_names),
                 ]
             )
         else:
             repo_table.add_row(
                 [
+                    # Managed
+                    RED_UNDERSCORE,
+                    # Is repo
+                    f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}",
+                    # Dirty repo
+                    RED_UNDERSCORE,
                     # Repo name
                     f"{Fore.RED}{Style.BRIGHT}{dir_name}{Fore.RESET}",
-                    # IS_REPO
-                    f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}",
-                    # Managed
-                    "",
-                    # Dirty repo
-                    "",
-                    # Heads
-                    "",
                     # Untracked
                     "",
                     # Modified
                     "",
                     # Staged
                     "",
+                    # Heads
+                    RED_UNDERSCORE,
                 ]
             )
 
@@ -274,7 +277,7 @@ def main() -> None:
 
     # Sanity checks
     if not os.path.exists("repos.csv"):
-        print("File 'repos.csv' not found - copy from example.csv")
+        print("File 'repos.csv' not found - copy from 'example.csv'")
         return
 
     # Colors in terminal
@@ -283,9 +286,10 @@ def main() -> None:
     managed_repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file(
         "repos.csv"
     )
-    # Observe: Repos will be created in parent directory
+    # Observe: Repos will be created in parent directory by design
     managed_repos.clone_managed_repos()
 
+    # Sorted parent directory names, ignore case
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
     print_repos(sorted_dirs, managed_repos)
 
