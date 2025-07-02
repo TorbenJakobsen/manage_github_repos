@@ -90,6 +90,8 @@ class ManagedRepoList:
         self: Self,
         local_dir: str,
     ) -> bool:
+        """``True`` if argument path is in initial argument list of managed repositories;
+        ``False`` otherwise."""
         for r in self._repos:
             if r.local_dir == local_dir:
                 return True
@@ -161,7 +163,27 @@ def prepare_table_for_print_repos() -> PrettyTable:
     return table
 
 
-RED_UNDERSCORE: str = f"{Fore.RED}{Style.BRIGHT}_{Fore.RESET}"
+def yellow_text(text: str) -> str:
+    return f"{Fore.YELLOW}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+def red_text(text: str) -> str:
+    return f"{Fore.RED}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+def blue_text(text: str) -> str:
+    return f"{Fore.BLUE}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+def green_text(text: str) -> str:
+    return f"{Fore.GREEN}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+def white_text(text: str) -> str:
+    return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+RED_UNDERSCORE: str = red_text("_")
 
 
 def print_repos(
@@ -186,9 +208,9 @@ def print_repos(
             active_branch_name: str = repo.active_branch.name
             colored_head_names: list[str] = [
                 (
-                    f"{Fore.GREEN}{head_name}{Fore.RESET}"
+                    green_text(head_name)
                     if head_name == active_branch_name
-                    else f"{Fore.WHITE}{head_name}{Fore.RESET}"
+                    else white_text(head_name)
                 )
                 for head_name in head_names
             ]
@@ -198,39 +220,31 @@ def print_repos(
             repo_table.add_row(
                 [
                     # Managed
-                    (
-                        f"{Fore.GREEN}{Style.BRIGHT}M{Fore.RESET}"
-                        if local_managed
-                        else ""
-                    ),
+                    green_text("M") if local_managed else "",
                     # Is repo
                     "",
                     # Dirty repo
                     (
-                        (
-                            f"{Fore.YELLOW}{Style.BRIGHT}D{Fore.RESET}"
-                            if local_managed
-                            else f"{Fore.BLUE}D{Fore.RESET}"
-                        )
+                        (yellow_text("D") if local_managed else blue_text("D"))
                         if repo.is_dirty()
                         else ""
                     ),
                     # Repo name
                     (
                         (
-                            f"{Fore.YELLOW}{Style.BRIGHT}{dir_name}{Fore.RESET}"
+                            yellow_text(dir_name)
                             if local_managed
-                            else f"{Fore.BLUE}{dir_name}{Fore.RESET}"
+                            else blue_text(dir_name)
                         )
                         if repo.is_dirty() or untracked_files
-                        else f"{dir_name}"
+                        else (green_text(dir_name) if local_managed else f"{dir_name}")
                     ),
                     # Untracked
                     (
                         (
-                            f"{Fore.YELLOW}{Style.BRIGHT}{untracked_files}{Fore.RESET}"
+                            yellow_text(untracked_files)
                             if local_managed
-                            else f"{Fore.BLUE}{untracked_files}{Fore.RESET}"
+                            else blue_text(untracked_files)
                         )
                         if untracked_files
                         else ""
