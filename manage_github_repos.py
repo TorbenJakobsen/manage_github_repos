@@ -96,14 +96,25 @@ class ManagedRepoList:
         return False
 
     def clone_managed_repos(self: Self) -> None:
-        """Traververse initial argument list and if any repository
-        is not present (as a directory) then clone it."""
-        for repo in self._repos:
-            repo_url: str = repo.repo_url
-            local_dir: str = f"../{repo.local_dir}"  # hardcode - use parent always
+        """Traververse initial argument list of managed repositories
+        and if any repository is not present (as a directory) then clone it."""
+        for managed_repo in self._repos:
+            repo_url: str = managed_repo.repo_url
+            local_dir: str = (
+                f"../{managed_repo.local_dir}"  # hardcode - use parent always
+            )
             if not os.path.isdir(local_dir):
                 print(f"Cloning into '{local_dir}'")
                 _ = Repo.clone_from(repo_url, local_dir)
+
+    def fetch_remotes(self: Self) -> None:
+        """Traververse initial argument list of managed repositories
+        and fetch any remotes."""
+        for managed_repo in self._repos:
+            repo_dir = managed_repo.local_dir
+            repo = Repo(f"../{repo_dir}")
+            for remote in repo.remotes:
+                remote.fetch()
 
 
 # -----------------------
@@ -151,14 +162,6 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
 
 RED_UNDERSCORE: str = f"{Fore.RED}{Style.BRIGHT}_{Fore.RESET}"
-
-
-def fetch_remotes(repos: ManagedRepoList) -> None:
-    for managed_repo in repos:
-        repo_name = managed_repo.local_dir
-        repo = Repo(f"../{repo_name}")
-        for remote in repo.remotes:
-            remote.fetch()
 
 
 def print_repos(
@@ -297,9 +300,11 @@ def main() -> None:
     # Observe: Repos will be created in parent directory by design
     managed_repos.clone_managed_repos()
 
-    fetch_remotes(managed_repos)
+    # Fetch all remotes (no merge or rebase)
+    managed_repos.fetch_remotes()
 
     # Sorted parent directory names, ignore case
+    # Not all directories are repositories and not all are managed
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
     print_repos(sorted_dirs, managed_repos)
 
