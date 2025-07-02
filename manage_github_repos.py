@@ -153,6 +153,14 @@ def prepare_table_for_print_repos() -> PrettyTable:
 RED_UNDERSCORE: str = f"{Fore.RED}{Style.BRIGHT}_{Fore.RESET}"
 
 
+def fetch_remotes(repos: ManagedRepoList) -> None:
+    for managed_repo in repos:
+        repo_name = managed_repo.local_dir
+        repo = Repo(f"../{repo_name}")
+        for remote in repo.remotes:
+            remote.fetch()
+
+
 def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
@@ -288,6 +296,8 @@ def main() -> None:
     )
     # Observe: Repos will be created in parent directory by design
     managed_repos.clone_managed_repos()
+
+    fetch_remotes(managed_repos)
 
     # Sorted parent directory names, ignore case
     sorted_dirs: list[str] = sorted(next(os.walk(".."))[1], key=str.casefold)
