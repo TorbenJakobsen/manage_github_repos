@@ -201,7 +201,13 @@ def print_repos(
 
         if repo:
             local_managed: bool = repos.is_local_dir_managed(dir_name)
-            staged_files: int = len(repo.index.diff("HEAD"))
+
+            # TODO Don't use try/except as program flow
+            try:
+                staged_files: int = len(repo.index.diff("HEAD"))
+            except Exception:
+                staged_files = 0
+
             modified_files: int = len(repo.index.diff(None))
             untracked_files: int = len(repo.untracked_files)
             head_names: list[str] = sorted([h.name for h in repo.heads])
