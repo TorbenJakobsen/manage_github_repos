@@ -7,9 +7,11 @@ from colorama import init as colorama_init
 from git import InvalidGitRepositoryError, Repo
 from prettytable import PrettyTable
 from pydantic import BaseModel
+from tqdm import tqdm
 
-# For Pydantic: https://docs.pydantic.dev/latest/
-# For GitPython: https://gitpython.readthedocs.io/en/stable/intro.html
+# For Pydantic   :  https://docs.pydantic.dev/latest/
+# For GitPython  :  https://gitpython.readthedocs.io/en/stable/intro.html
+# For tqdm       :  https://tqdm.github.io/
 
 # -----------------------
 
@@ -86,6 +88,13 @@ class ManagedRepoList:
     def __iter__(self: Self):
         return self._repos.__iter__()
 
+    # ---
+
+    @property
+    def max_name_len(self: Self) -> int:
+        """Maximum length of ``local_dir`` for managed repositories."""
+        return max([len(r.local_dir) for r in self._repos])
+
     def is_local_dir_managed(
         self: Self,
         local_dir: str,
@@ -100,23 +109,31 @@ class ManagedRepoList:
     def clone_managed_repos(self: Self) -> None:
         """Traververse initial argument list of managed repositories
         and if any repository is not present (as a directory) then clone it."""
-        for managed_repo in self._repos:
+        pbar: tqdm = tqdm(self._repos, desc="Clone", unit="rp")
+        max_len: int = self.max_name_len
+        for managed_repo in pbar:
+            pbar.set_description(f"Clone: {managed_repo.local_dir.ljust(max_len)}")
             repo_url: str = managed_repo.repo_url
-            local_dir: str = (
+            rel_local_dir: str = (
                 f"../{managed_repo.local_dir}"  # hardcode - use parent always
             )
-            if not os.path.isdir(local_dir):
-                print(f"Cloning into '{local_dir}'")
-                _ = Repo.clone_from(repo_url, local_dir)
+            if not os.path.isdir(rel_local_dir):
+                pbar.set_description(f"CLONE: {managed_repo.local_dir.ljust(max_len)}")
+                _ = Repo.clone_from(repo_url, rel_local_dir)
+            pbar.set_description(f"Clone: {''.ljust(max_len)}")
 
     def fetch_remotes(self: Self) -> None:
         """Traververse initial argument list of managed repositories
         and fetch any remotes."""
-        for managed_repo in self._repos:
-            repo_dir = managed_repo.local_dir
-            repo = Repo(f"../{repo_dir}")
+        pbar: tqdm = tqdm(self._repos, desc="Fetch", unit="rp")
+        max_len: int = self.max_name_len
+        for managed_repo in pbar:
+            pbar.set_description(f"Fetch: {managed_repo.local_dir.ljust(max_len)}")
+            rel_repo_dir = managed_repo.local_dir
+            repo = Repo(f"../{rel_repo_dir}")
             for remote in repo.remotes:
                 remote.fetch()
+            pbar.set_description(f"Fetch: {''.ljust(max_len)}")
 
 
 # -----------------------
