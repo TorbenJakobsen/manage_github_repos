@@ -90,5 +90,10 @@ Oh-my-posh
 .. image:: ./media/prompt_dirty_repo.png
   :width: 580
 
+.. image:: ./media/prompt_clean_repo.png
+  :width: 580
+
+.. image:: ./media/prompt_behind_repo.png
+  :width: 580
 
 
