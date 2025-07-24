@@ -29,7 +29,7 @@ I like a progres bar but it means some of the methods updates a bar as a side ef
   :width: 620
 
 Feel free to omit the progress bar by midifying the script if you like - 
-for example to be used by other scripts. 
+for example to be used by another script. 
 
 The ``Makefile`` depends on the presence of ``make``.
 You can get it by installing the Xcode command line tools.
@@ -50,6 +50,10 @@ You can see all the installed tools at: ``/Library/Developer/CommandLineTools/us
 
 If you for example use ``git`` and it is not installed you will be asked to install,
 which will do what the install command above does.
+
+The CLI tools will update together with the regular OS updates and core applications like Safari.
+
+You can choose the use Homebrew if you want the latest versions or don't want the Apple adapted/modified versions.
 
 How to run
 ==========
