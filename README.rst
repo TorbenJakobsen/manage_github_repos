@@ -90,6 +90,8 @@ Oh-my-posh
 .. image:: ./media/prompt_dirty_repo.png
   :width: 580
 
+A repository that is syncronized wih the remote will look like this:
+
 .. image:: ./media/prompt_clean_repo.png
   :width: 580
 
