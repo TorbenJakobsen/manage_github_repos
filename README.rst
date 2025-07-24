@@ -14,7 +14,6 @@ If you are a Windows user then...
 
   | As always you should not trust content on the internet unconditionally.
   | Use at your own risk!
-  |
 
 **********************
   Overview / Install
@@ -23,14 +22,14 @@ If you are a Windows user then...
 Requirements
 ============
 
-The one central requirement is ``GitPython``;
+The one actual requirement is ``GitPython``;
 the rest are for convenience and cosmetics like colors and progress bars.
-I like a progres bar but it means some of the methods updates a bar as a side effect.
+I like a progress bar but it does mean some of the methods updates a bar as a sideeffect.
 
 .. image:: ./media/make_run_progress.png
   :width: 800
 
-Feel free to omit the progress bar by midifying the script if you like - 
+Feel free to omit the progress bar by modifying the script if you like - 
 for example to be used by another script. 
 
 The ``Makefile`` depends on the presence of ``make``.
@@ -79,9 +78,13 @@ So I write ``gsync`` in a terminal.
 .. image:: ./media/repo_list_all.png
   :width: 800
 
+The meaning of colors... TODO
+
 Oh-my-posh
 ----------
 
 .. image:: ./media/prompt_dirty_repo.png
-  :width: 620
+  :width: 580
+
+
 
