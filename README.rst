@@ -4,6 +4,10 @@
 
 A simple utililty to keep GitHub repositories syncronized.
 
+.. note::
+
+  It is assumed GitHub is used but any git repos is expected to work as long as you can access it (permissions).
+
 I use macOS and Linux daily.  
 I have created some aliases to support the script.
 There is a ``Makefile`` to handle setting up, building and running the application.
