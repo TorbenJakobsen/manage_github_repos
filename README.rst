@@ -6,14 +6,15 @@ A simple utililty to keep GitHub repositories syncronized.
 
 I use macOS and Linux daily.  
 I have created some aliases to support the script.
-There is a ``Makefile`` to handle setting up, building and run the application.
+There is a ``Makefile`` to handle setting up, building and running the application.
 
 If you are a Windows user then...
 
 .. warning::
 
-  As always you should not trust content on the internaet uncondiationally.
-  Use at your own risk!
+  | As always you should not trust content on the internet unconditionally.
+  | Use at your own risk!
+  |
 
 **********************
   Overview / Install
