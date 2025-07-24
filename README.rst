@@ -11,6 +11,7 @@ There is a ``Makefile`` to handle setting up, building and run the application.
 If you are a Windows user then...
 
 .. warning::
+
   As always you should not trust content on the internaet uncondiationally.
   Use at your own risk!
 
@@ -26,7 +27,7 @@ the rest are for convenience and cosmetics like colors and progress bars.
 I like a progres bar but it means some of the methods updates a bar as a side effect.
 
 .. image:: ./media/make_run_progress.png
-  :width: 620
+  :width: 800
 
 Feel free to omit the progress bar by midifying the script if you like - 
 for example to be used by another script. 
@@ -37,6 +38,7 @@ You can get it by installing the Xcode command line tools.
 Open a terminal and write:
 
 .. code:: bash
+  
   xcode-select --install
 
 Accept the terms to install.
@@ -44,6 +46,7 @@ Accept the terms to install.
 Optionally verify:
 
 .. code:: bash
+
   xcode-select -p
 
 You can see all the installed tools at: ``/Library/Developer/CommandLineTools/usr/bin``.
@@ -64,6 +67,7 @@ macOS /Linux
 The following is added to my ``.zshenv`` file:
 
 .. code:: bash
+  
   export REPOS="~/source/repos"
   alias repos="cd $REPOS"
   alias grepos="cd $REPOS/GitHub"
@@ -72,8 +76,11 @@ The following is added to my ``.zshenv`` file:
 So I write ``gsync`` in a terminal.
 
 .. image:: ./media/repo_list_all.png
+  :width: 800
 
 Oh-my-posh
 ----------
 
 .. image:: ./media/prompt_dirty_repo.png
+  :width: 620
+
