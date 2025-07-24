@@ -41,6 +41,16 @@ Open a terminal and write:
 
 Accept the terms to install.
 
+Optionally verify:
+
+.. code:: bash
+  xcode-select -p
+
+You can see all the installed tools at: ``/Library/Developer/CommandLineTools/usr/bin``.
+
+If you for example use ``git`` and it is not installed you will be asked to install,
+which will do what the install command above does.
+
 How to run
 ==========
 
