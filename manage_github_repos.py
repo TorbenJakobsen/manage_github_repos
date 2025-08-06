@@ -281,9 +281,6 @@ def print_repos(
                 else ""
             )
             col_text_heads: str = ", ".join(colored_head_names)
-            col_text_summary: str = (
-                col_text_managed + col_text_is_repo + col_text_dirty_repo
-            )
 
         else:
 
@@ -291,14 +288,14 @@ def print_repos(
             col_text_is_repo: str = red_text("N")
             col_text_dirty_repo: str = red_text(".")
             col_text_repo_name: str = red_text(dir_name)
-            col_text_untracked: str = ""
-            col_text_modified: str = ""
-            col_text_staged: str = ""
-            col_text_heads: str = ""
-            col_text_summary: str = (
-                col_text_managed + col_text_is_repo + col_text_dirty_repo
-            )
+            col_text_untracked: str = red_text(".")
+            col_text_modified: str = red_text(".")
+            col_text_staged: str = red_text(".")
+            col_text_heads: str = red_text(".")
 
+        col_text_summary: str = (
+            col_text_managed + col_text_is_repo + col_text_dirty_repo
+        )
         repo_table.add_row(
             [
                 col_text_summary,
