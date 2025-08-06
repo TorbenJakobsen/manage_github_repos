@@ -27,7 +27,10 @@ class ManagedRepo(BaseModel):
     def __eq__(self: Self, other: Any):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return (self.local_dir.lower(), self.repo_url.lower()) == (
+        return (
+            self.local_dir.lower(),
+            self.repo_url.lower(),
+        ) == (
             other.local_dir.lower(),
             other.repo_url.lower(),
         )
@@ -35,7 +38,10 @@ class ManagedRepo(BaseModel):
     def __lt__(self: Self, other: Any):
         if not self._is_valid_operand(other):
             return NotImplemented
-        return (self.local_dir.lower(), self.repo_url.lower()) < (
+        return (
+            self.local_dir.lower(),
+            self.repo_url.lower(),
+        ) < (
             other.local_dir.lower(),
             other.repo_url.lower(),
         )
@@ -148,10 +154,8 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     # Table headers
 
-    DIR: str = "Directory"
-    IS_REPO: str = "?"
-    MANAGED = "M"
-    DIRTY_REPO: str = "D"
+    SUMMARY = "M?D"
+    DIR: str = "Local Directory"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
@@ -159,9 +163,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     table = PrettyTable(
         [
-            MANAGED,
-            IS_REPO,
-            DIRTY_REPO,
+            SUMMARY,
             DIR,
             UNTRACKED_FILES,
             MODIFIED_FILES,
@@ -169,15 +171,16 @@ def prepare_table_for_print_repos() -> PrettyTable:
             HEADS,
         ]
     )
-    table.align[MANAGED] = "c"
-    table.align[IS_REPO] = "c"
-    table.align[DIRTY_REPO] = "c"
+    table.align[SUMMARY] = "l"
     table.align[DIR] = "l"
     table.align[HEADS] = "l"
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
     table.align[STAGED_FILES] = "r"
     return table
+
+
+# TODO Dont use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
 
 
 def yellow_text(text: str) -> str:
@@ -200,9 +203,6 @@ def white_text(text: str) -> str:
     return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
 
 
-RED_UNDERSCORE: str = red_text("_")
-
-
 def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
@@ -217,6 +217,7 @@ def print_repos(
             repo = None
 
         if repo:
+
             local_managed: bool = repos.is_local_dir_managed(dir_name)
 
             # TODO Don't use try/except as program flow
@@ -240,83 +241,74 @@ def print_repos(
 
             # ---
 
-            repo_table.add_row(
-                [
-                    # Managed
-                    green_text("M") if local_managed else "",
-                    # Is repo
-                    "",
-                    # Dirty repo
-                    (
-                        (yellow_text("D") if local_managed else blue_text("D"))
-                        if repo.is_dirty()
-                        else ""
-                    ),
-                    # Repo name
-                    (
-                        (
-                            yellow_text(dir_name)
-                            if local_managed
-                            else blue_text(dir_name)
-                        )
-                        if repo.is_dirty() or untracked_files
-                        else (green_text(dir_name) if local_managed else f"{dir_name}")
-                    ),
-                    # Untracked
-                    (
-                        (
-                            yellow_text(untracked_files)
-                            if local_managed
-                            else blue_text(untracked_files)
-                        )
-                        if untracked_files
-                        else ""
-                    ),
-                    # Modified
-                    (
-                        (
-                            f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
-                            if local_managed
-                            else f"{Fore.BLUE}{modified_files}{Fore.RESET}"
-                        )
-                        if modified_files
-                        else ""
-                    ),
-                    # Staged
-                    (
-                        (
-                            f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
-                            if local_managed
-                            else f"{Fore.BLUE}{staged_files}{Fore.RESET}"
-                        )
-                        if staged_files
-                        else ""
-                    ),
-                    # Head names
-                    ", ".join(colored_head_names),
-                ]
+            col_text_managed = green_text("M") if local_managed else "."
+            col_text_is_repo: str = "."
+            col_text_dirty_repo: str = (
+                (yellow_text("D") if local_managed else blue_text("D"))
+                if repo.is_dirty()
+                else "."
             )
+            col_text_repo_name: str = (
+                (yellow_text(dir_name) if local_managed else blue_text(dir_name))
+                if repo.is_dirty() or untracked_files
+                else (green_text(dir_name) if local_managed else f"{dir_name}")
+            )
+            col_text_untracked: str = (
+                (
+                    yellow_text(untracked_files)
+                    if local_managed
+                    else blue_text(untracked_files)
+                )
+                if untracked_files
+                else ""
+            )
+            col_text_modified: str = (
+                (
+                    f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
+                    if local_managed
+                    else f"{Fore.BLUE}{modified_files}{Fore.RESET}"
+                )
+                if modified_files
+                else ""
+            )
+            col_text_staged: str = (
+                (
+                    f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
+                    if local_managed
+                    else f"{Fore.BLUE}{staged_files}{Fore.RESET}"
+                )
+                if staged_files
+                else ""
+            )
+            col_text_heads: str = ", ".join(colored_head_names)
+            col_text_summary: str = (
+                col_text_managed + col_text_is_repo + col_text_dirty_repo
+            )
+
         else:
-            repo_table.add_row(
-                [
-                    # Managed
-                    RED_UNDERSCORE,
-                    # Is repo
-                    f"{Fore.RED}{Style.BRIGHT}N{Fore.RESET}",
-                    # Dirty repo
-                    RED_UNDERSCORE,
-                    # Repo name
-                    f"{Fore.RED}{Style.BRIGHT}{dir_name}{Fore.RESET}",
-                    # Untracked
-                    "",
-                    # Modified
-                    "",
-                    # Staged
-                    "",
-                    # Heads
-                    RED_UNDERSCORE,
-                ]
+
+            col_text_managed: str = red_text(".")
+            col_text_is_repo: str = red_text("N")
+            col_text_dirty_repo: str = red_text(".")
+            col_text_repo_name: str = red_text(dir_name)
+            col_text_untracked: str = ""
+            col_text_modified: str = ""
+            col_text_staged: str = ""
+            col_text_heads: str = ""
+            col_text_summary: str = (
+                col_text_managed + col_text_is_repo + col_text_dirty_repo
             )
+
+        repo_table.add_row(
+            [
+                col_text_summary,
+                col_text_repo_name,
+                col_text_untracked,
+                col_text_modified,
+                col_text_staged,
+                col_text_heads,
+            ]
+        )
 
     print(repo_table)
 
