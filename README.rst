@@ -6,7 +6,8 @@ A simple utililty to keep GitHub repositories syncronized.
 
 .. note::
 
-  It is assumed GitHub is used but any git repos is expected to work as long as you can access it (permissions).
+  It is assumed GitHub is used but any git repository is expected to work
+  as long as you can access it (permissions).
 
 I use macOS and Linux daily.  
 I have created some aliases to support the script.
@@ -64,6 +65,18 @@ You can choose the use Homebrew if you want the latest versions or don't want th
 
 How to run
 ==========
+
+| The script needs a configuration file ``repos.csv``.
+| There is an ``example.csv`` file you can copy.
+| 
+
+My preference is to make a symbolic link to a repository where my private/personal files are kept 
+(no keys, tokens or account details).
+As the script manages all repositories in the parent directory one simply makes an initial fetch so it s present. 
+
+.. code:: bash
+
+  ln -sf ../private-utils/repos.csv ./repos.csv
 
 macOS /Linux
 ------------
