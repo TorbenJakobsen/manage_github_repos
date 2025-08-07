@@ -93,6 +93,23 @@ Configuration file
 | In the project there is an ``example.csv`` file you can copy and modify.
 | 
 
+.. code:: text
+
+  # Example CSV repository file
+  # Comments, blanks, and blank lines are allowed
+  # Copy this file to `repos.csv`
+  # For public you can use https; for private use git and tokens
+  # Note that using https protocol will only work for fetching.
+
+  decimaldate,                       git@github.com/TorbenJakobsen/decimaldate
+  manage_configuration_with_stow,    git@github.com/TorbenJakobsen/manage_configuration_with_stow
+  manage_github_repos,               git@github.com:TorbenJakobsen/manage_github_repos
+  matrix_digital_rain,               git@github.com/TorbenJakobsen/matrix_digital_rain
+  setup_fedora_linux_as_workstation, git@github.com/TorbenJakobsen/setup_fedora_linux_as_workstation
+  
+  setup_terminal_and_shell,          https://github.com/TorbenJakobsen/setup_terminal_and_shell
+
+
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
 As the script manages all repositories in the parent directory (from this repository)
