@@ -13,7 +13,6 @@ from tqdm import tqdm
 # For GitPython  :  https://gitpython.readthedocs.io/en/stable/intro.html
 # For tqdm       :  https://tqdm.github.io/
 
-# TODO Handle repos without access (eg. corporate repos) or no connection
 
 # -----------------------
 
@@ -179,7 +178,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     # Table headers
 
-    SUMMARY = "M?D>"
+    SUMMARY = "M?UD>"
     DIR: str = "Local Directory"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
@@ -299,6 +298,12 @@ def print_repos(
                     else dim_white_text(".")
                 )
 
+                col_text_has_untracked_files: str = (
+                    (yellow_text("U") if untracked_files != "" else blue_text("U"))
+                    if untracked_files
+                    else dim_white_text(".")
+                )
+
                 col_text_repo_name: str = (
                     (yellow_text(dir_name) if local_managed else blue_text(dir_name))
                     if repo.is_dirty() or untracked_files
@@ -337,13 +342,6 @@ def print_repos(
 
                 col_text_heads: str = ", ".join(colored_head_names)
 
-                # remote = repo.remote("origin")
-                # remote.fetch()
-                # latest_remote_commit = remote.refs[repo.active_branch.name].commit
-                # latest_local_commit = repo.head.commit
-                # latest_commit_is_pushed: bool = (
-                #    latest_local_commit == latest_remote_commit
-                # )
                 latest_commit_is_pushed = ManagedRepoList.latest_commit_is_pushed(repo)
                 col_latest_commit_is_pushed: str = (
                     dim_white_text(".") if latest_commit_is_pushed else red_text(">")
@@ -354,6 +352,7 @@ def print_repos(
                 col_text_managed: str = red_text(".")
                 col_text_is_repo: str = red_text("N")
                 col_text_dirty_repo: str = red_text(".")
+                col_text_has_untracked_files = red_text(".")
                 col_text_repo_name: str = red_text(dir_name)
                 col_text_untracked: str = red_text(".")
                 col_text_modified: str = red_text(".")
@@ -365,6 +364,7 @@ def print_repos(
             col_text_managed: str = bright_magenta_text("?")
             col_text_is_repo: str = bright_magenta_text("?")
             col_text_dirty_repo: str = bright_magenta_text("?")
+            col_text_has_untracked_files = bright_magenta_text("?")
             col_text_repo_name: str = bright_magenta_text(dir_name)
             col_text_untracked: str = bright_magenta_text("?")
             col_text_modified: str = bright_magenta_text("?")
@@ -375,6 +375,7 @@ def print_repos(
         col_text_summary: str = (
             col_text_managed
             + col_text_is_repo
+            + col_text_has_untracked_files
             + col_text_dirty_repo
             + col_latest_commit_is_pushed
         )
