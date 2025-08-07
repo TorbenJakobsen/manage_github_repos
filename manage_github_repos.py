@@ -13,6 +13,8 @@ from tqdm import tqdm
 # For GitPython  :  https://gitpython.readthedocs.io/en/stable/intro.html
 # For tqdm       :  https://tqdm.github.io/
 
+# TODO Handle repos without access (eg. corporate repos)
+
 # -----------------------
 
 
@@ -160,6 +162,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
     STAGED_FILES: str = "Stg"
+    IS_LATEST_COMMITED: str = "C"
 
     table = PrettyTable(
         [
@@ -169,6 +172,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
             MODIFIED_FILES,
             STAGED_FILES,
             HEADS,
+            IS_LATEST_COMMITED,
         ]
     )
     table.align[SUMMARY] = "l"
@@ -177,6 +181,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
     table.align[STAGED_FILES] = "r"
+    table.align[IS_LATEST_COMMITED] = "r"
     return table
 
 
@@ -203,13 +208,20 @@ def white_text(text: str) -> str:
     return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
 
 
+def dim_white_text(text: str) -> str:
+    return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
+
+
 def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
 ) -> None:
     repo_table: PrettyTable = prepare_table_for_print_repos()
 
-    for dir_name in dir_list:
+    max_len = 20  # TODO calculate
+    pbar: tqdm = tqdm(dir_list, desc="Build", unit="rp")
+    for dir_name in pbar:
+        pbar.set_description(f"Build: {dir_name.ljust(max_len)}")
 
         try:
             repo = Repo(f"../{dir_name}")
@@ -241,18 +253,20 @@ def print_repos(
 
             # ---
 
-            col_text_managed = green_text("M") if local_managed else "."
-            col_text_is_repo: str = "."
+            col_text_managed = green_text("M") if local_managed else dim_white_text(".")
+            col_text_is_repo: str = dim_white_text(".")
             col_text_dirty_repo: str = (
                 (yellow_text("D") if local_managed else blue_text("D"))
                 if repo.is_dirty()
-                else "."
+                else dim_white_text(".")
             )
+
             col_text_repo_name: str = (
                 (yellow_text(dir_name) if local_managed else blue_text(dir_name))
                 if repo.is_dirty() or untracked_files
                 else (green_text(dir_name) if local_managed else f"{dir_name}")
             )
+
             col_text_untracked: str = (
                 (
                     yellow_text(untracked_files)
@@ -262,6 +276,7 @@ def print_repos(
                 if untracked_files
                 else ""
             )
+
             col_text_modified: str = (
                 (
                     f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
@@ -271,6 +286,7 @@ def print_repos(
                 if modified_files
                 else ""
             )
+
             col_text_staged: str = (
                 (
                     f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
@@ -280,7 +296,17 @@ def print_repos(
                 if staged_files
                 else ""
             )
+
             col_text_heads: str = ", ".join(colored_head_names)
+
+            remote = repo.remote("origin")
+            remote.fetch()
+            latest_remote_commit = remote.refs[repo.active_branch.name].commit
+            latest_local_commit = repo.head.commit
+            latest_commit_is_pushed: str = latest_local_commit == latest_remote_commit
+            col_latest_commit_is_pushed: str = (
+                "Y" if latest_commit_is_pushed else red_text("N")
+            )
 
         else:
 
@@ -292,6 +318,7 @@ def print_repos(
             col_text_modified: str = red_text(".")
             col_text_staged: str = red_text(".")
             col_text_heads: str = red_text(".")
+            col_latest_commit_is_pushed: str = red_text(".")
 
         col_text_summary: str = (
             col_text_managed + col_text_is_repo + col_text_dirty_repo
@@ -304,8 +331,10 @@ def print_repos(
                 col_text_modified,
                 col_text_staged,
                 col_text_heads,
+                col_latest_commit_is_pushed,
             ]
         )
+        pbar.set_description(f"Build: {''.ljust(max_len)}")
 
     print(repo_table)
 
