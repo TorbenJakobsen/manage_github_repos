@@ -13,7 +13,7 @@ from tqdm import tqdm
 # For GitPython  :  https://gitpython.readthedocs.io/en/stable/intro.html
 # For tqdm       :  https://tqdm.github.io/
 
-# TODO Handle repos without access (eg. corporate repos)
+# TODO Handle repos without access (eg. corporate repos) or no connection
 
 # -----------------------
 
@@ -305,7 +305,7 @@ def print_repos(
             latest_local_commit = repo.head.commit
             latest_commit_is_pushed: str = latest_local_commit == latest_remote_commit
             col_latest_commit_is_pushed: str = (
-                "Y" if latest_commit_is_pushed else red_text("N")
+                dim_white_text(".") if latest_commit_is_pushed else red_text(">")
             )
 
         else:
@@ -321,7 +321,10 @@ def print_repos(
             col_latest_commit_is_pushed: str = red_text(".")
 
         col_text_summary: str = (
-            col_text_managed + col_text_is_repo + col_text_dirty_repo
+            col_text_managed
+            + col_text_is_repo
+            + col_text_dirty_repo
+            + col_latest_commit_is_pushed
         )
         repo_table.add_row(
             [
@@ -331,7 +334,6 @@ def print_repos(
                 col_text_modified,
                 col_text_staged,
                 col_text_heads,
-                col_latest_commit_is_pushed,
             ]
         )
         pbar.set_description(f"Build: {''.ljust(max_len)}")
