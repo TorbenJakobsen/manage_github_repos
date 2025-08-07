@@ -11,9 +11,10 @@ A simple utililty to keep GitHub repositories syncronized.
   It is assumed GitHub is used but any git repository is expected to work
   as long as you can access it (permissions).
 
-I use macOS and Linux daily.  
-I have created some aliases to support the script.
-There is a ``Makefile`` to handle setting up, building and running the application.
+| I use macOS and Linux daily.  
+| I have created some aliases to support the script.
+| There is a ``Makefile`` to handle setting up, building and running the application.
+| 
 
 If you are a Windows user, the script also works and will described as well.
 
@@ -25,7 +26,7 @@ Requirements
 ============
 
 The one actual requirement is ``GitPython``;
-the rest of the Pysthon packages are for convenience and cosmetics like colors and progress bars.
+the rest of the Python packages are for convenience and cosmetics like colors and progress bars.
 I like a progress bar but it does mean some of the methods expects and updates a progress bar as a sideeffect.
 
 .. image:: ./media/make_run_progress.png
@@ -36,7 +37,7 @@ for example to be used by another script.
 
 The optional ``Makefile`` depends on the presence of ``make``.
 
-The ``GitPython`` package uses an installed ``git`` thus ``git`` is also a dependency.
+The ``GitPython`` package wraps an installed ``git`` thus ``git`` is also a dependency.
 
 macOS
 -----
