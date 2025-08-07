@@ -10,15 +10,15 @@ A simple utililty to keep GitHub repositories syncronized.
 
 .. note::
 
-  It is assumed GitHub is used but any git repository is expected to work
-  as long as you can access it (permissions).
+  It is assumed GitHub is used, but any git repository is expected to work
+  as long as you can access it (permissions and connectivity).
 
-| I use macOS and Linux daily.  
-| I have created some aliases to support the script.
-| There is a ``Makefile`` to handle setting up, building and running the application.
+| I use macOS and Linux daily (not so much Windows).  
+| I have created some shell aliases to support the script.
+| For macOS/linux there is a ``Makefile`` to handle setting up, building and running the application.
 | 
 
-If you are a Windows user, the script also works and will described as well.
+If you are a Windows user, the script also works and will be described as well.
 
 **********************
   Overview / Install
@@ -27,7 +27,7 @@ If you are a Windows user, the script also works and will described as well.
 Requirements
 ============
 
-The one actual requirement is ``GitPython``;
+The one actual requirement is python and the package ``GitPython``;
 the rest of the Python packages are for convenience and cosmetics like colors and progress bars.
 I like a progress bar but it does mean some of the methods expects and updates a progress bar as a sideeffect.
 
@@ -37,9 +37,9 @@ I like a progress bar but it does mean some of the methods expects and updates a
 Feel free to omit the progress bar by modifying the script if you like - 
 for example to be used by another script. 
 
-The optional ``Makefile`` depends on the presence of ``make``.
+The optional ``Makefile`` depends on the presence of the command ``make``.
 
-The ``GitPython`` package wraps an installed ``git`` thus ``git`` is also a dependency.
+The ``GitPython`` package wraps an installed ``git`` thus ``git`` is a dependency.
 
 macOS
 -----
@@ -66,7 +66,7 @@ If you for example use ``git`` in macOS, and ``git`` is not installed,
 you will be offered to install by the operating system,
 which will do what the install command above does.
 
-The Xcode CLI tools will update together with the regular OS updates and core applications like Safari.
+The Xcode CLI tools will update jointly with the regular OS updates and core applications like Safari.
 
 You can choose the use Homebrew_ if you want the latest versions or don't want the Apple adapted/modified versions.
 
@@ -89,26 +89,27 @@ How to run
 Configuration file
 ------------------
 
-| The script needs a configuration file ``repos.csv``.
+| The script needs a configuration file: ``repos.csv``.
 | In the project there is an ``example.csv`` file you can copy and modify.
 | 
 
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
 As the script manages all repositories in the parent directory (from this repository)
-one simply makes initial fetch so *this* repository and ``private-utils`` are present
+one simply makes initial fetches so *this* repository and ``../private-utils`` are present
 before make the symbolic link.
 
 .. code:: bash
 
   ln -sf ../private-utils/repos.csv ./repos.csv
 
-If you make changes to the linked ``repos.csv`` make sure to push the change in ``private-utils/repos.csv``.
+If you make changes to the linked ``repos.csv`` make sure to
+stage and push the change in ``private-utils/repos.csv``.
 
 macOS /Linux
 ------------
 
-The following is added to my ``.zshenv`` file:
+The following is added to my ``~/.zshenv`` file:
 
 .. code:: bash
   
@@ -117,7 +118,8 @@ The following is added to my ``.zshenv`` file:
   alias grepos="cd $REPOS/GitHub"
   alias gsync="grepos;cd manage_github_repos;make run"
 
-So write ``gsync`` in a terminal. You will stay in the ``manage_github_repos`` directory.
+So write ``gsync`` in a terminal. 
+You will stay in the ``manage_github_repos`` directory.
 
 .. image:: ./media/repo_list_all.png
   :width: 800
