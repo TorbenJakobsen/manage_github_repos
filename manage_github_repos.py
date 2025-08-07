@@ -114,7 +114,10 @@ class ManagedRepoList:
                 return True
         return False
 
-    def clone_managed_repos(self: Self) -> None:
+    def clone_managed_repos(
+        self: Self,
+        ignore_error: bool = False,
+    ) -> None:
         """Traververse initial argument list of managed repositories
         and if any repository is not present (as a directory) then clone it."""
         pbar: tqdm = tqdm(self._repos, desc="Clone", unit="rp")
@@ -127,10 +130,18 @@ class ManagedRepoList:
             )
             if not os.path.isdir(rel_local_dir):
                 pbar.set_description(f"CLONE: {managed_repo.local_dir.ljust(max_len)}")
-                _ = Repo.clone_from(repo_url, rel_local_dir)
+                try:
+                    _ = Repo.clone_from(repo_url, rel_local_dir)
+                except Exception as e:
+                    if not ignore_error:
+                        raise e
+
             pbar.set_description(f"Clone: {''.ljust(max_len)}")
 
-    def fetch_remotes(self: Self) -> None:
+    def fetch_remotes(
+        self: Self,
+        ignore_error: bool = False,
+    ) -> None:
         """Traververse initial argument list of managed repositories
         and fetch any remotes."""
         pbar: tqdm = tqdm(self._repos, desc="Fetch", unit="rp")
@@ -139,8 +150,12 @@ class ManagedRepoList:
             pbar.set_description(f"Fetch: {managed_repo.local_dir.ljust(max_len)}")
             rel_repo_dir = managed_repo.local_dir
             repo = Repo(f"../{rel_repo_dir}")
-            for remote in repo.remotes:
-                remote.fetch()
+            try:
+                for remote in repo.remotes:
+                    remote.fetch()
+            except Exception as e:
+                if not ignore_error:
+                    raise e
             pbar.set_description(f"Fetch: {''.ljust(max_len)}")
 
 
@@ -156,13 +171,12 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     # Table headers
 
-    SUMMARY = "M?D"
+    SUMMARY = "M?D>"
     DIR: str = "Local Directory"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
     MODIFIED_FILES: str = "Mod"
     STAGED_FILES: str = "Stg"
-    IS_LATEST_COMMITED: str = "C"
 
     table = PrettyTable(
         [
@@ -172,7 +186,6 @@ def prepare_table_for_print_repos() -> PrettyTable:
             MODIFIED_FILES,
             STAGED_FILES,
             HEADS,
-            IS_LATEST_COMMITED,
         ]
     )
     table.align[SUMMARY] = "l"
@@ -181,11 +194,10 @@ def prepare_table_for_print_repos() -> PrettyTable:
     table.align[UNTRACKED_FILES] = "r"
     table.align[MODIFIED_FILES] = "r"
     table.align[STAGED_FILES] = "r"
-    table.align[IS_LATEST_COMMITED] = "r"
     return table
 
 
-# TODO Dont use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
+# TODO Don't use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
 
 
 def yellow_text(text: str) -> str:
@@ -212,11 +224,19 @@ def dim_white_text(text: str) -> str:
     return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
 
 
+def dim_cyan_text(text: str) -> str:
+    return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
+
+
+def cyan_text(text: str) -> str:
+    return f"{Fore.CYAN}{text}{Fore.RESET}"
+
+
 def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
 ) -> None:
-    repo_table: PrettyTable = prepare_table_for_print_repos()
+    pretty_repo_table: PrettyTable = prepare_table_for_print_repos()
 
     max_len = 20  # TODO calculate
     pbar: tqdm = tqdm(dir_list, desc="Build", unit="rp")
@@ -228,97 +248,114 @@ def print_repos(
         except InvalidGitRepositoryError:
             repo = None
 
-        if repo:
+        try:
 
-            local_managed: bool = repos.is_local_dir_managed(dir_name)
+            if repo:
 
-            # TODO Don't use try/except as program flow
-            try:
-                staged_files: int = len(repo.index.diff("HEAD"))
-            except Exception:
-                staged_files = 0
+                local_managed: bool = repos.is_local_dir_managed(dir_name)
 
-            modified_files: int = len(repo.index.diff(None))
-            untracked_files: int = len(repo.untracked_files)
-            head_names: list[str] = sorted([h.name for h in repo.heads])
-            active_branch_name: str = repo.active_branch.name
-            colored_head_names: list[str] = [
-                (
-                    green_text(head_name)
-                    if head_name == active_branch_name
-                    else white_text(head_name)
+                # TODO Don't use try/except as program flow
+                try:
+                    staged_files: int = len(repo.index.diff("HEAD"))
+                except Exception:
+                    staged_files = 0
+
+                modified_files: int = len(repo.index.diff(None))
+                untracked_files: int = len(repo.untracked_files)
+                head_names: list[str] = sorted([h.name for h in repo.heads])
+                active_branch_name: str = repo.active_branch.name
+                colored_head_names: list[str] = [
+                    (
+                        green_text(head_name)
+                        if head_name == active_branch_name
+                        else dim_white_text(head_name)
+                    )
+                    for head_name in head_names
+                ]
+
+                # ---
+
+                col_text_managed = (
+                    green_text("M") if local_managed else dim_white_text(".")
                 )
-                for head_name in head_names
-            ]
-
-            # ---
-
-            col_text_managed = green_text("M") if local_managed else dim_white_text(".")
-            col_text_is_repo: str = dim_white_text(".")
-            col_text_dirty_repo: str = (
-                (yellow_text("D") if local_managed else blue_text("D"))
-                if repo.is_dirty()
-                else dim_white_text(".")
-            )
-
-            col_text_repo_name: str = (
-                (yellow_text(dir_name) if local_managed else blue_text(dir_name))
-                if repo.is_dirty() or untracked_files
-                else (green_text(dir_name) if local_managed else f"{dir_name}")
-            )
-
-            col_text_untracked: str = (
-                (
-                    yellow_text(untracked_files)
-                    if local_managed
-                    else blue_text(untracked_files)
+                col_text_is_repo: str = dim_white_text(".")
+                col_text_dirty_repo: str = (
+                    (yellow_text("D") if local_managed else blue_text("D"))
+                    if repo.is_dirty()
+                    else dim_white_text(".")
                 )
-                if untracked_files
-                else ""
-            )
 
-            col_text_modified: str = (
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}{modified_files}{Fore.RESET}"
-                    if local_managed
-                    else f"{Fore.BLUE}{modified_files}{Fore.RESET}"
+                col_text_repo_name: str = (
+                    (yellow_text(dir_name) if local_managed else blue_text(dir_name))
+                    if repo.is_dirty() or untracked_files
+                    else (green_text(dir_name) if local_managed else f"{dir_name}")
                 )
-                if modified_files
-                else ""
-            )
 
-            col_text_staged: str = (
-                (
-                    f"{Fore.YELLOW}{Style.BRIGHT}{staged_files}{Fore.RESET}"
-                    if local_managed
-                    else f"{Fore.BLUE}{staged_files}{Fore.RESET}"
+                col_text_untracked: str = (
+                    (
+                        yellow_text(untracked_files)
+                        if local_managed
+                        else blue_text(untracked_files)
+                    )
+                    if untracked_files
+                    else ""
                 )
-                if staged_files
-                else ""
-            )
 
-            col_text_heads: str = ", ".join(colored_head_names)
+                col_text_modified: str = (
+                    (
+                        yellow_text(modified_files)
+                        if local_managed
+                        else blue_text(modified_files)
+                    )
+                    if modified_files
+                    else ""
+                )
 
-            remote = repo.remote("origin")
-            remote.fetch()
-            latest_remote_commit = remote.refs[repo.active_branch.name].commit
-            latest_local_commit = repo.head.commit
-            latest_commit_is_pushed: str = latest_local_commit == latest_remote_commit
-            col_latest_commit_is_pushed: str = (
-                dim_white_text(".") if latest_commit_is_pushed else red_text(">")
-            )
+                col_text_staged: str = (
+                    (
+                        yellow_text(staged_files)
+                        if local_managed
+                        else blue_text(staged_files)
+                    )
+                    if staged_files
+                    else ""
+                )
 
-        else:
+                col_text_heads: str = ", ".join(colored_head_names)
 
-            col_text_managed: str = red_text(".")
-            col_text_is_repo: str = red_text("N")
-            col_text_dirty_repo: str = red_text(".")
-            col_text_repo_name: str = red_text(dir_name)
-            col_text_untracked: str = red_text(".")
-            col_text_modified: str = red_text(".")
-            col_text_staged: str = red_text(".")
-            col_text_heads: str = red_text(".")
-            col_latest_commit_is_pushed: str = red_text(".")
+                remote = repo.remote("origin")
+                remote.fetch()
+                latest_remote_commit = remote.refs[repo.active_branch.name].commit
+                latest_local_commit = repo.head.commit
+                latest_commit_is_pushed: str = (
+                    latest_local_commit == latest_remote_commit
+                )
+                col_latest_commit_is_pushed: str = (
+                    dim_white_text(".") if latest_commit_is_pushed else red_text(">")
+                )
+
+            else:
+
+                col_text_managed: str = red_text(".")
+                col_text_is_repo: str = red_text("N")
+                col_text_dirty_repo: str = red_text(".")
+                col_text_repo_name: str = red_text(dir_name)
+                col_text_untracked: str = red_text(".")
+                col_text_modified: str = red_text(".")
+                col_text_staged: str = red_text(".")
+                col_text_heads: str = red_text(".")
+                col_latest_commit_is_pushed: str = red_text(".")
+
+        except Exception as e:
+            col_text_managed: str = cyan_text("?")
+            col_text_is_repo: str = cyan_text("?")
+            col_text_dirty_repo: str = cyan_text("?")
+            col_text_repo_name: str = cyan_text(dir_name)
+            col_text_untracked: str = cyan_text("?")
+            col_text_modified: str = cyan_text("?")
+            col_text_staged: str = cyan_text("?")
+            col_text_heads: str = cyan_text("?")
+            col_latest_commit_is_pushed: str = cyan_text("?")
 
         col_text_summary: str = (
             col_text_managed
@@ -326,7 +363,7 @@ def print_repos(
             + col_text_dirty_repo
             + col_latest_commit_is_pushed
         )
-        repo_table.add_row(
+        pretty_repo_table.add_row(
             [
                 col_text_summary,
                 col_text_repo_name,
@@ -336,9 +373,10 @@ def print_repos(
                 col_text_heads,
             ]
         )
+
         pbar.set_description(f"Build: {''.ljust(max_len)}")
 
-    print(repo_table)
+    print(pretty_repo_table)
 
 
 def main() -> None:
@@ -355,10 +393,18 @@ def main() -> None:
         "repos.csv"
     )
     # Observe: Repos will be created in parent directory by design
-    managed_repos.clone_managed_repos()
+    try:
+        managed_repos.clone_managed_repos()
+    except Exception as e:
+        # ignore
+        pass
 
     # Fetch all remotes (no merge or rebase)
-    managed_repos.fetch_remotes()
+    try:
+        managed_repos.fetch_remotes()
+    except Exception as e:
+        # ignore
+        pass
 
     # Sorted parent directory names, ignore case
     # Not all directories are repositories and not all are managed
