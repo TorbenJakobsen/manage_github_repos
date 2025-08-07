@@ -4,7 +4,7 @@ from typing import Any, Self
 
 from colorama import Fore, Style
 from colorama import init as colorama_init
-from git import InvalidGitRepositoryError, Repo
+from git import InvalidGitRepositoryError, Remote, Repo
 from prettytable import PrettyTable
 from pydantic import BaseModel
 from tqdm import tqdm
@@ -84,6 +84,14 @@ class ManagedRepoList:
     def read_repos_from_csv_file(filename: str):
         repos = ManagedRepoList.__read_repos_from_csv_file(filename)
         return ManagedRepoList(repos)
+
+    @staticmethod
+    def latest_commit_is_pushed(repo: Repo):
+        remote: Remote = repo.remote("origin")
+        remote.fetch()
+        latest_remote_commit = remote.refs[repo.active_branch.name].commit
+        latest_local_commit = repo.head.commit
+        return latest_local_commit == latest_remote_commit
 
     # ---
 
@@ -228,8 +236,12 @@ def dim_cyan_text(text: str) -> str:
     return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
 
 
-def cyan_text(text: str) -> str:
-    return f"{Fore.CYAN}{text}{Fore.RESET}"
+def bright_cyan_text(text: str) -> str:
+    return f"{Fore.CYAN}{Style.BRIGHT}{text}{Fore.RESET}"
+
+
+def bright_magenta_text(text: str) -> str:
+    return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Fore.RESET}"
 
 
 def print_repos(
@@ -278,7 +290,9 @@ def print_repos(
                 col_text_managed = (
                     green_text("M") if local_managed else dim_white_text(".")
                 )
+
                 col_text_is_repo: str = dim_white_text(".")
+
                 col_text_dirty_repo: str = (
                     (yellow_text("D") if local_managed else blue_text("D"))
                     if repo.is_dirty()
@@ -323,13 +337,14 @@ def print_repos(
 
                 col_text_heads: str = ", ".join(colored_head_names)
 
-                remote = repo.remote("origin")
-                remote.fetch()
-                latest_remote_commit = remote.refs[repo.active_branch.name].commit
-                latest_local_commit = repo.head.commit
-                latest_commit_is_pushed: str = (
-                    latest_local_commit == latest_remote_commit
-                )
+                # remote = repo.remote("origin")
+                # remote.fetch()
+                # latest_remote_commit = remote.refs[repo.active_branch.name].commit
+                # latest_local_commit = repo.head.commit
+                # latest_commit_is_pushed: bool = (
+                #    latest_local_commit == latest_remote_commit
+                # )
+                latest_commit_is_pushed = ManagedRepoList.latest_commit_is_pushed(repo)
                 col_latest_commit_is_pushed: str = (
                     dim_white_text(".") if latest_commit_is_pushed else red_text(">")
                 )
@@ -347,15 +362,15 @@ def print_repos(
                 col_latest_commit_is_pushed: str = red_text(".")
 
         except Exception as e:
-            col_text_managed: str = cyan_text("?")
-            col_text_is_repo: str = cyan_text("?")
-            col_text_dirty_repo: str = cyan_text("?")
-            col_text_repo_name: str = cyan_text(dir_name)
-            col_text_untracked: str = cyan_text("?")
-            col_text_modified: str = cyan_text("?")
-            col_text_staged: str = cyan_text("?")
-            col_text_heads: str = cyan_text("?")
-            col_latest_commit_is_pushed: str = cyan_text("?")
+            col_text_managed: str = bright_magenta_text("?")
+            col_text_is_repo: str = bright_magenta_text("?")
+            col_text_dirty_repo: str = bright_magenta_text("?")
+            col_text_repo_name: str = bright_magenta_text(dir_name)
+            col_text_untracked: str = bright_magenta_text("?")
+            col_text_modified: str = bright_magenta_text("?")
+            col_text_staged: str = bright_magenta_text("?")
+            col_text_heads: str = bright_magenta_text("?")
+            col_latest_commit_is_pushed: str = bright_magenta_text("?")
 
         col_text_summary: str = (
             col_text_managed
