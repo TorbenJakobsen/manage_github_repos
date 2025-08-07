@@ -1,4 +1,6 @@
 .. _Homebrew: https://brew.sh/
+.. _Ben Du: https://misc.legendu.net/blog/hands-on-GitPython/
+.. _readthedocs tutorial: https://gitpython.readthedocs.io/en/stable/tutorial.html
 
 ##############################
   Manage GitHub Repositories
@@ -76,7 +78,6 @@ Windows
 Linux
 -----
 
-
 .. code:: bash
 
   # untested
@@ -121,7 +122,7 @@ So write ``gsync`` in a terminal. You will stay in the ``manage_github_repos`` d
 .. image:: ./media/repo_list_all.png
   :width: 800
 
-The meaning of colors... TODO
+The meaning of colors ... TODO
 
 Oh-my-posh
 ----------
@@ -138,3 +139,9 @@ A repository that is syncronized with the remote will look like this:
   :width: 580
 
 
+*************
+  Resources
+*************
+
+- `readthedocs tutorial`_
+- `Ben Du`_ has a list with examples.
