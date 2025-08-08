@@ -152,18 +152,20 @@ The meaning of colors ... TODO
 Oh-my-posh
 ----------
 
+If there are unstaged/modified files the prompt will look like this:
+
 .. image:: ./media/prompt_dirty_repo.png
   :width: 580
 
 A repository that is syncronized with the remote will look like this:
 
 .. image:: ./media/prompt_clean_repo.png
-  :width: 580
+  :width: 520
 
-If there are a difference in the latest commit local/remote it will loo like this:
+If there are a difference in the latest commit local/remote it will look like this:
 
 .. image:: ./media/prompt_behind_repo.png
-  :width: 580
+  :width: 6400
 
 
 *************
