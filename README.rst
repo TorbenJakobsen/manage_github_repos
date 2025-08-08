@@ -1,6 +1,7 @@
 .. _Homebrew: https://brew.sh/
 .. _Ben Du: https://misc.legendu.net/blog/hands-on-GitPython/
 .. _readthedocs tutorial: https://gitpython.readthedocs.io/en/stable/tutorial.html
+.. _Oh My Posh: https://ohmyposh.dev/
 
 ##############################
   Manage GitHub Repositories
@@ -151,6 +152,11 @@ The meaning of colors ... TODO
 
 Oh-my-posh
 ----------
+
+I personally use `Oh My Posh`_ to improve my experience with a terminal - you might use something different or not at all.
+I will not discuss installation and configuration of `Oh My Posh`_.
+
+I use the default prompt.
 
 If there are unstaged/modified files the prompt will look like this:
 
