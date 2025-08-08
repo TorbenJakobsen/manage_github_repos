@@ -1,4 +1,4 @@
-from manage_github_repos import ManagedRepo, ManagedRepoList
+from src.manage_github_repos import ManagedRepo, ManagedRepoList
 
 FILE_NAME = "example.csv"
 

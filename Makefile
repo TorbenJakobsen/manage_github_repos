@@ -79,4 +79,4 @@ format: venv
 
 .PHONY: run
 run: venv
-	$(PYTHON) manage_github_repos.py
+	$(PYTHON) src/manage_github_repos.py

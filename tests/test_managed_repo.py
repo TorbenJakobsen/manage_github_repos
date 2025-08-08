@@ -1,4 +1,4 @@
-from manage_github_repos import ManagedRepo
+from src.manage_github_repos import ManagedRepo
 
 repo_a: ManagedRepo = ManagedRepo(local_dir="a", repo_url="https://www.example.com/a")
 repo_b: ManagedRepo = ManagedRepo(local_dir="b", repo_url="https://www.example.com/b")
