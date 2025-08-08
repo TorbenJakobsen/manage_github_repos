@@ -167,6 +167,103 @@ class ManagedRepoList:
 # -----------------------
 
 
+# TODO Don't use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
+
+
+class ColorDecorator:
+
+    def __init__(
+        self: Self,
+        use_colors: bool = True,
+    ):
+        self._use_colors = use_colors
+
+    # YELLOW
+
+    def yellow_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.YELLOW}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # RED
+
+    def red_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.RED}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # BLUE
+
+    def blue_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.BLUE}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # GREEN
+
+    def green_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.GREEN}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # WHITE
+
+    def white_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    def dim_white_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
+
+    # CYAN
+
+    def dim_cyan_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
+
+    def bright_cyan_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.CYAN}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # MAGENTA
+
+    def bright_magenta_text(
+        self: Self,
+        text: str,
+    ) -> str:
+        return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Fore.RESET}"
+
+    # ===
+
+    def not_a_repository(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.red_text(text)
+
+    def error(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.bright_magenta_text(text)
+
+
+# -----------------------
+
+
 # TODO For now, it is assumed the git host server is GitHub
 
 # TODO Use of colors assume dark (black) background
@@ -219,49 +316,11 @@ def prepare_table_for_print_repos() -> PrettyTable:
     return table
 
 
-# TODO Don't use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
-
-
-def yellow_text(text: str) -> str:
-    return f"{Fore.YELLOW}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def red_text(text: str) -> str:
-    return f"{Fore.RED}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def blue_text(text: str) -> str:
-    return f"{Fore.BLUE}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def green_text(text: str) -> str:
-    return f"{Fore.GREEN}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def white_text(text: str) -> str:
-    return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def dim_white_text(text: str) -> str:
-    return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
-
-
-def dim_cyan_text(text: str) -> str:
-    return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
-
-
-def bright_cyan_text(text: str) -> str:
-    return f"{Fore.CYAN}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
-def bright_magenta_text(text: str) -> str:
-    return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Fore.RESET}"
-
-
 def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
 ) -> None:
+    color_decorator: ColorDecorator = ColorDecorator(True)
     pretty_repo_table: PrettyTable = prepare_table_for_print_repos()
 
     max_len = 20  # TODO calculate
@@ -292,9 +351,9 @@ def print_repos(
                 active_branch_name: str = repo.active_branch.name
                 colored_head_names: list[str] = [
                     (
-                        green_text(head_name)
+                        color_decorator.green_text(head_name)
                         if head_name == active_branch_name
-                        else dim_white_text(head_name)
+                        else color_decorator.dim_white_text(head_name)
                     )
                     for head_name in head_names
                 ]
@@ -302,34 +361,52 @@ def print_repos(
                 # ---
 
                 col_text_managed = (
-                    green_text("M") if local_managed else dim_white_text(".")
+                    color_decorator.green_text("M")
+                    if local_managed
+                    else color_decorator.dim_white_text(".")
                 )
 
-                col_text_is_repo: str = dim_white_text(".")
+                col_text_is_repo: str = color_decorator.dim_white_text(".")
 
                 col_text_dirty_repo: str = (
-                    (yellow_text("D") if local_managed else blue_text("D"))
+                    (
+                        color_decorator.yellow_text("D")
+                        if local_managed
+                        else color_decorator.blue_text("D")
+                    )
                     if repo.is_dirty()
-                    else dim_white_text(".")
+                    else color_decorator.dim_white_text(".")
                 )
 
                 col_text_has_untracked_files: str = (
-                    (yellow_text("U") if untracked_files != "" else blue_text("U"))
+                    (
+                        color_decorator.yellow_text("U")
+                        if untracked_files != ""
+                        else color_decorator.blue_text("U")
+                    )
                     if untracked_files
-                    else dim_white_text(".")
+                    else color_decorator.dim_white_text(".")
                 )
 
                 col_text_repo_name: str = (
-                    (yellow_text(dir_name) if local_managed else blue_text(dir_name))
+                    (
+                        color_decorator.yellow_text(dir_name)
+                        if local_managed
+                        else color_decorator.blue_text(dir_name)
+                    )
                     if repo.is_dirty() or untracked_files
-                    else (green_text(dir_name) if local_managed else dir_name)
+                    else (
+                        color_decorator.green_text(dir_name)
+                        if local_managed
+                        else dir_name
+                    )
                 )
 
                 col_text_untracked: str = (
                     (
-                        yellow_text(untracked_files)
+                        color_decorator.yellow_text(untracked_files)
                         if local_managed
-                        else blue_text(untracked_files)
+                        else color_decorator.blue_text(untracked_files)
                     )
                     if untracked_files
                     else ""
@@ -337,9 +414,9 @@ def print_repos(
 
                 col_text_modified: str = (
                     (
-                        yellow_text(modified_files)
+                        color_decorator.yellow_text(modified_files)
                         if local_managed
-                        else blue_text(modified_files)
+                        else color_decorator.blue_text(modified_files)
                     )
                     if modified_files
                     else ""
@@ -347,9 +424,9 @@ def print_repos(
 
                 col_text_staged: str = (
                     (
-                        yellow_text(staged_files)
+                        color_decorator.yellow_text(staged_files)
                         if local_managed
-                        else blue_text(staged_files)
+                        else color_decorator.blue_text(staged_files)
                     )
                     if staged_files
                     else ""
@@ -358,35 +435,35 @@ def print_repos(
                 col_text_heads: str = ", ".join(colored_head_names)
 
                 col_latest_commit_is_pushed: str = (
-                    dim_white_text(".")
+                    color_decorator.dim_white_text(".")
                     if latest_commit_is_pushed(repo)
-                    else red_text(">")
+                    else color_decorator.red_text(">")
                 )
 
             else:
 
-                col_text_managed: str = red_text(".")
-                col_text_is_repo: str = red_text("N")
-                col_text_dirty_repo: str = red_text(".")
-                col_text_has_untracked_files = red_text(".")
-                col_text_repo_name: str = red_text(dir_name)
-                col_text_untracked: str = red_text(".")
-                col_text_modified: str = red_text(".")
-                col_text_staged: str = red_text(".")
-                col_text_heads: str = red_text(".")
-                col_latest_commit_is_pushed: str = red_text(".")
+                col_text_managed: str = color_decorator.not_a_repository(".")
+                col_text_is_repo: str = color_decorator.not_a_repository("N")
+                col_text_dirty_repo: str = color_decorator.not_a_repository(".")
+                col_text_has_untracked_files = color_decorator.not_a_repository(".")
+                col_text_repo_name: str = color_decorator.not_a_repository(dir_name)
+                col_text_untracked: str = color_decorator.not_a_repository(".")
+                col_text_modified: str = color_decorator.not_a_repository(".")
+                col_text_staged: str = color_decorator.not_a_repository(".")
+                col_text_heads: str = color_decorator.not_a_repository(".")
+                col_latest_commit_is_pushed: str = color_decorator.not_a_repository(".")
 
         except Exception as e:
-            col_text_managed: str = bright_magenta_text("?")
-            col_text_is_repo: str = bright_magenta_text("?")
-            col_text_dirty_repo: str = bright_magenta_text("?")
-            col_text_has_untracked_files = bright_magenta_text("?")
-            col_text_repo_name: str = bright_magenta_text(dir_name)
-            col_text_untracked: str = bright_magenta_text("?")
-            col_text_modified: str = bright_magenta_text("?")
-            col_text_staged: str = bright_magenta_text("?")
-            col_text_heads: str = bright_magenta_text("?")
-            col_latest_commit_is_pushed: str = bright_magenta_text("?")
+            col_text_managed: str = color_decorator.bright_magenta_text("?")
+            col_text_is_repo: str = color_decorator.bright_magenta_text("?")
+            col_text_dirty_repo: str = color_decorator.bright_magenta_text("?")
+            col_text_has_untracked_files = color_decorator.bright_magenta_text("?")
+            col_text_repo_name: str = color_decorator.bright_magenta_text(dir_name)
+            col_text_untracked: str = color_decorator.bright_magenta_text("?")
+            col_text_modified: str = color_decorator.bright_magenta_text("?")
+            col_text_staged: str = color_decorator.bright_magenta_text("?")
+            col_text_heads: str = color_decorator.bright_magenta_text("?")
+            col_latest_commit_is_pushed: str = color_decorator.bright_magenta_text("?")
 
         col_text_summary: str = (
             col_text_managed
