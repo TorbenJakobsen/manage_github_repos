@@ -84,14 +84,6 @@ class ManagedRepoList:
         repos = ManagedRepoList.__read_repos_from_csv_file(filename)
         return ManagedRepoList(repos)
 
-    @staticmethod
-    def latest_commit_is_pushed(repo: Repo):
-        remote: Remote = repo.remote("origin")
-        remote.fetch()
-        latest_remote_commit = remote.refs[repo.active_branch.name].commit
-        latest_local_commit = repo.head.commit
-        return latest_local_commit == latest_remote_commit
-
     # ---
 
     def __init__(self: Self, repos: list[ManagedRepo]):
@@ -114,8 +106,10 @@ class ManagedRepoList:
         self: Self,
         local_dir: str,
     ) -> bool:
-        """``True`` if argument path is in initial argument list of managed repositories;
-        ``False`` otherwise."""
+        """
+        ``True`` if argument path is in initial argument list of managed repositories;
+        ``False`` otherwise.
+        """
         for r in self._repos:
             if r.local_dir == local_dir:
                 return True
@@ -125,8 +119,10 @@ class ManagedRepoList:
         self: Self,
         ignore_error: bool = False,
     ) -> None:
-        """Traververse initial argument list of managed repositories
-        and if any repository is not present (as a directory) then clone it."""
+        """
+        Traververse initial argument list of managed repositories
+        and if any repository is not present (as a directory) then clone it.
+        """
         pbar: tqdm = tqdm(self._repos, desc="Clone", unit="rp")
         max_len: int = self.max_name_len
         for managed_repo in pbar:
@@ -149,8 +145,10 @@ class ManagedRepoList:
         self: Self,
         ignore_error: bool = False,
     ) -> None:
-        """Traververse initial argument list of managed repositories
-        and fetch any remotes."""
+        """
+        Traververse initial argument list of managed repositories
+        and fetch any remotes.
+        """
         pbar: tqdm = tqdm(self._repos, desc="Fetch", unit="rp")
         max_len: int = self.max_name_len
         for managed_repo in pbar:
@@ -168,9 +166,26 @@ class ManagedRepoList:
 
 # -----------------------
 
+
 # TODO For now, it is assumed the git host server is GitHub
 
 # TODO Use of colors assume dark (black) background
+
+
+def latest_commit_is_pushed(repo: Repo) -> bool:
+    """
+    Local and remote (origin) are the same.
+
+    :param repo: _description_
+    :type repo: Repo
+    :return: ``True`` if local and remote are the same; ``False`` otherwise
+    :rtype: bool
+    """
+    remote: Remote = repo.remote("origin")
+    remote.fetch()
+    latest_remote_commit = remote.refs[repo.active_branch.name].commit
+    latest_local_commit = repo.head.commit
+    return latest_local_commit == latest_remote_commit
 
 
 def prepare_table_for_print_repos() -> PrettyTable:
@@ -307,7 +322,7 @@ def print_repos(
                 col_text_repo_name: str = (
                     (yellow_text(dir_name) if local_managed else blue_text(dir_name))
                     if repo.is_dirty() or untracked_files
-                    else (green_text(dir_name) if local_managed else f"{dir_name}")
+                    else (green_text(dir_name) if local_managed else dir_name)
                 )
 
                 col_text_untracked: str = (
@@ -342,9 +357,10 @@ def print_repos(
 
                 col_text_heads: str = ", ".join(colored_head_names)
 
-                latest_commit_is_pushed = ManagedRepoList.latest_commit_is_pushed(repo)
                 col_latest_commit_is_pushed: str = (
-                    dim_white_text(".") if latest_commit_is_pushed else red_text(">")
+                    dim_white_text(".")
+                    if latest_commit_is_pushed(repo)
+                    else red_text(">")
                 )
 
             else:
@@ -411,14 +427,14 @@ def main() -> None:
     # Observe: Repos will be created in parent directory by design
     try:
         managed_repos.clone_managed_repos()
-    except Exception as e:
+    except Exception:
         # ignore
         pass
 
     # Fetch all remotes (no merge or rebase)
     try:
         managed_repos.fetch_remotes()
-    except Exception as e:
+    except Exception:
         # ignore
         pass
 
