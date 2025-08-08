@@ -165,7 +165,7 @@ A repository that is syncronized with the remote will look like this:
 If there are a difference in the latest commit local/remote it will look like this:
 
 .. image:: ./media/prompt_behind_repo.png
-  :width: 6400
+  :width: 640
 
 
 *************
