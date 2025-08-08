@@ -89,8 +89,8 @@ How to run
 Configuration file
 ------------------
 
-| The script needs a configuration file: ``repos.csv``.
-| In the project there is an ``example.csv`` file you can copy and modify.
+| The script needs a configuration file: ``config/repos.csv``.
+| In the project there is an ``config/example.csv`` file you can copy and modify.
 | 
 
 .. code:: text
@@ -110,6 +110,9 @@ Configuration file
   setup_terminal_and_shell,          https://github.com/TorbenJakobsen/setup_terminal_and_shell
 
 
+.. image:: ./media/run_no_repos_csv.png
+  :width: 420
+
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
 As the script manages all repositories in the parent directory (from this repository)
@@ -118,9 +121,10 @@ before make the symbolic link.
 
 .. code:: bash
 
-  ln -sf ../private-utils/repos.csv ./repos.csv
+  # be sure to be in root of `manage_github_repos`
+  ln -sf ../../private-utils/repos.csv ./config/repos.csv
 
-If you make changes to the linked ``repos.csv`` make sure to
+If you make changes to the linked ``config/repos.csv`` make sure to
 stage and push the change in ``private-utils/repos.csv``.
 
 macOS /Linux

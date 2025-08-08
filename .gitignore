@@ -3,5 +3,5 @@
 __pycache__/
 venv
 
-repos.csv
-!example.csv
+config/repos.csv
+!config/example.csv

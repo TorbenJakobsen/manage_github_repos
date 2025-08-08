@@ -532,16 +532,21 @@ def print_repos(
 
 def main() -> None:
 
+    cwd: str = os.getcwd()  # current working directory
+
     # Sanity checks
-    if not os.path.exists("repos.csv"):
-        print("File 'repos.csv' not found - copy from 'example.csv'")
+    if not os.path.exists(f"{cwd}/config/repos.csv"):
+        print(os.getcwd())
+        print(
+            f"File 'config/repos.csv' not found in CWD ({cwd}) - copy/modify 'config/example.csv'"
+        )
         return
 
     # Colors in terminal
     colorama_init()
 
     managed_repos: ManagedRepoList = ManagedRepoList.read_repos_from_csv_file(
-        "repos.csv"
+        "config/repos.csv"
     )
     # Observe: Repos will be created in parent directory by design
     try:
