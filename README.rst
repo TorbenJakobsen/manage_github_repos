@@ -124,7 +124,7 @@ before make the symbolic link.
 .. code:: bash
 
   # be sure to be in root of `manage_github_repos`
-  ln -sf ../../private-utils/repos.csv ./config/repos.csv
+  ln -sf ../private-utils/repos.csv ./config/repos.csv
 
 If you make changes to the linked ``config/repos.csv`` make sure to
 stage and push the change in ``private-utils/repos.csv``.
