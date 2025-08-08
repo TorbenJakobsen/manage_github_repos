@@ -66,7 +66,7 @@ If you for example use ``git`` in macOS, and ``git`` is not installed,
 you will be offered to install by the operating system,
 which will do what the install command above does.
 
-The Xcode CLI tools will update jointly with the regular OS updates and core applications like Safari.
+The Xcode CLI tools will update with the regular OS updates and core applications like Safari.
 
 You can choose the use Homebrew_ if you want the latest versions or don't want the Apple adapted/modified versions.
 
@@ -111,7 +111,7 @@ Configuration file
 
 
 .. image:: ./media/run_no_repos_csv.png
-  :width: 420
+  :width: 680
 
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
