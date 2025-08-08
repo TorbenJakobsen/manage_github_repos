@@ -118,7 +118,7 @@ If the file ``config/repos.csv`` does not exist you will be informed.
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
 As the script manages all repositories in the parent directory (from this repository)
-one simply makes initial fetches so *this* repository and ``../private-utils`` are present
+one simply makes initial fetches so *this* repository (``manage_github_repos``) and ``../private-utils`` are present
 before make the symbolic link.
 
 .. code:: bash
