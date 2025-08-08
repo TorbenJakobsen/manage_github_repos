@@ -111,7 +111,7 @@ Configuration file
 
 
 .. image:: ./media/run_no_repos_csv.png
-  :width: 680
+  :width: 800
 
 My preference is to make a symbolic link to a repository where my private/personal files are kept 
 (no keys, tokens or account details).
