@@ -110,6 +110,8 @@ Configuration file
   setup_terminal_and_shell,          https://github.com/TorbenJakobsen/setup_terminal_and_shell
 
 
+If the file ``config/repos.csv`` does not exist you will be informed.
+
 .. image:: ./media/run_no_repos_csv.png
   :width: 800
 
