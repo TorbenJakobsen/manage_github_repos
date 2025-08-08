@@ -142,7 +142,7 @@ The following is added to my ``~/.zshenv`` file:
   alias gsync="grepos;cd manage_github_repos;make run"
 
 So write ``gsync`` in a terminal. 
-You will stay in the ``manage_github_repos`` directory.
+You will end in the ``manage_github_repos`` directory.
 
 .. image:: ./media/repo_list_all.png
   :width: 800
@@ -159,6 +159,8 @@ A repository that is syncronized with the remote will look like this:
 
 .. image:: ./media/prompt_clean_repo.png
   :width: 580
+
+If there are a difference in the latest commit local/remote it will loo like this:
 
 .. image:: ./media/prompt_behind_repo.png
   :width: 580
