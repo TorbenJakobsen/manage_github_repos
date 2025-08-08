@@ -180,7 +180,7 @@ class ColorDecorator:
 
     # YELLOW
 
-    def yellow_text(
+    def bright_yellow_text(
         self: Self,
         text: str,
     ) -> str:
@@ -188,7 +188,7 @@ class ColorDecorator:
 
     # RED
 
-    def red_text(
+    def bright_red_text(
         self: Self,
         text: str,
     ) -> str:
@@ -196,7 +196,7 @@ class ColorDecorator:
 
     # BLUE
 
-    def blue_text(
+    def bright_blue_text(
         self: Self,
         text: str,
     ) -> str:
@@ -204,7 +204,7 @@ class ColorDecorator:
 
     # GREEN
 
-    def green_text(
+    def bright_green_text(
         self: Self,
         text: str,
     ) -> str:
@@ -212,7 +212,7 @@ class ColorDecorator:
 
     # WHITE
 
-    def white_text(
+    def bright_white_text(
         self: Self,
         text: str,
     ) -> str:
@@ -248,17 +248,59 @@ class ColorDecorator:
 
     # ===
 
-    def not_a_repository(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.red_text(text)
-
     def error(
         self: Self,
         text: str,
     ) -> str:
         return self.bright_magenta_text(text)
+
+    def neutral(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.dim_white_text(text)
+
+    def not_a_repository(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.bright_red_text(text)
+
+    def local_and_remote_identical(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.dim_white_text(text)
+
+    def local_and_remote_different(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.bright_red_text(text)
+
+    def active_head(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.bright_green_text(text)
+
+    def inactive_head(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.dim_white_text(text)
+
+    def managed_repo(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.bright_green_text(text)
+
+    def unmanaged_repo(
+        self: Self,
+        text: str,
+    ) -> str:
+        return self.dim_white_text(text)
 
 
 # -----------------------
@@ -273,7 +315,7 @@ def latest_commit_is_pushed(repo: Repo) -> bool:
     """
     Local and remote (origin) are the same.
 
-    :param repo: _description_
+    :param repo: local repository to check
     :type repo: Repo
     :return: ``True`` if local and remote are the same; ``False`` otherwise
     :rtype: bool
@@ -351,9 +393,9 @@ def print_repos(
                 active_branch_name: str = repo.active_branch.name
                 colored_head_names: list[str] = [
                     (
-                        color_decorator.green_text(head_name)
+                        color_decorator.active_head(head_name)
                         if head_name == active_branch_name
-                        else color_decorator.dim_white_text(head_name)
+                        else color_decorator.inactive_head(head_name)
                     )
                     for head_name in head_names
                 ]
@@ -361,42 +403,42 @@ def print_repos(
                 # ---
 
                 col_text_managed = (
-                    color_decorator.green_text("M")
+                    color_decorator.managed_repo("M")
                     if local_managed
-                    else color_decorator.dim_white_text(".")
+                    else color_decorator.unmanaged_repo(".")
                 )
 
-                col_text_is_repo: str = color_decorator.dim_white_text(".")
+                col_text_is_repo: str = color_decorator.neutral(".")
 
                 col_text_dirty_repo: str = (
                     (
-                        color_decorator.yellow_text("D")
+                        color_decorator.bright_yellow_text("D")
                         if local_managed
-                        else color_decorator.blue_text("D")
+                        else color_decorator.bright_blue_text("D")
                     )
                     if repo.is_dirty()
-                    else color_decorator.dim_white_text(".")
+                    else color_decorator.neutral(".")
                 )
 
                 col_text_has_untracked_files: str = (
                     (
-                        color_decorator.yellow_text("U")
+                        color_decorator.bright_yellow_text("U")
                         if untracked_files != ""
-                        else color_decorator.blue_text("U")
+                        else color_decorator.bright_blue_text("U")
                     )
                     if untracked_files
-                    else color_decorator.dim_white_text(".")
+                    else color_decorator.neutral(".")
                 )
 
                 col_text_repo_name: str = (
                     (
-                        color_decorator.yellow_text(dir_name)
+                        color_decorator.bright_yellow_text(dir_name)
                         if local_managed
-                        else color_decorator.blue_text(dir_name)
+                        else color_decorator.bright_blue_text(dir_name)
                     )
                     if repo.is_dirty() or untracked_files
                     else (
-                        color_decorator.green_text(dir_name)
+                        color_decorator.bright_green_text(dir_name)
                         if local_managed
                         else dir_name
                     )
@@ -404,9 +446,9 @@ def print_repos(
 
                 col_text_untracked: str = (
                     (
-                        color_decorator.yellow_text(untracked_files)
+                        color_decorator.bright_yellow_text(untracked_files)
                         if local_managed
-                        else color_decorator.blue_text(untracked_files)
+                        else color_decorator.bright_blue_text(untracked_files)
                     )
                     if untracked_files
                     else ""
@@ -414,9 +456,9 @@ def print_repos(
 
                 col_text_modified: str = (
                     (
-                        color_decorator.yellow_text(modified_files)
+                        color_decorator.bright_yellow_text(modified_files)
                         if local_managed
-                        else color_decorator.blue_text(modified_files)
+                        else color_decorator.bright_blue_text(modified_files)
                     )
                     if modified_files
                     else ""
@@ -424,9 +466,9 @@ def print_repos(
 
                 col_text_staged: str = (
                     (
-                        color_decorator.yellow_text(staged_files)
+                        color_decorator.bright_yellow_text(staged_files)
                         if local_managed
-                        else color_decorator.blue_text(staged_files)
+                        else color_decorator.bright_blue_text(staged_files)
                     )
                     if staged_files
                     else ""
@@ -435,9 +477,9 @@ def print_repos(
                 col_text_heads: str = ", ".join(colored_head_names)
 
                 col_latest_commit_is_pushed: str = (
-                    color_decorator.dim_white_text(".")
+                    color_decorator.local_and_remote_identical(".")
                     if latest_commit_is_pushed(repo)
-                    else color_decorator.red_text(">")
+                    else color_decorator.local_and_remote_different(">")
                 )
 
             else:
@@ -454,16 +496,16 @@ def print_repos(
                 col_latest_commit_is_pushed: str = color_decorator.not_a_repository(".")
 
         except Exception as e:
-            col_text_managed: str = color_decorator.bright_magenta_text("?")
-            col_text_is_repo: str = color_decorator.bright_magenta_text("?")
-            col_text_dirty_repo: str = color_decorator.bright_magenta_text("?")
-            col_text_has_untracked_files = color_decorator.bright_magenta_text("?")
-            col_text_repo_name: str = color_decorator.bright_magenta_text(dir_name)
-            col_text_untracked: str = color_decorator.bright_magenta_text("?")
-            col_text_modified: str = color_decorator.bright_magenta_text("?")
-            col_text_staged: str = color_decorator.bright_magenta_text("?")
-            col_text_heads: str = color_decorator.bright_magenta_text("?")
-            col_latest_commit_is_pushed: str = color_decorator.bright_magenta_text("?")
+            col_text_managed: str = color_decorator.error("?")
+            col_text_is_repo: str = color_decorator.error("?")
+            col_text_dirty_repo: str = color_decorator.error("?")
+            col_text_has_untracked_files = color_decorator.error("?")
+            col_text_repo_name: str = color_decorator.error(dir_name)
+            col_text_untracked: str = color_decorator.error("?")
+            col_text_modified: str = color_decorator.error("?")
+            col_text_staged: str = color_decorator.error("?")
+            col_text_heads: str = color_decorator.error("?")
+            col_latest_commit_is_pushed: str = color_decorator.error("?")
 
         col_text_summary: str = (
             col_text_managed
