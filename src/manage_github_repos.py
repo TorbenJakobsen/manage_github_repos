@@ -1,306 +1,23 @@
-import os
-from functools import total_ordering
-from typing import Any, Self
+"""
+manage_github_repos
+"""
 
-from colorama import Fore, Style
+import os
+
 from colorama import init as colorama_init
 from git import InvalidGitRepositoryError, Remote, Repo
 from prettytable import PrettyTable
-from pydantic import BaseModel
 from tqdm import tqdm
+
+from color_decorator import ColorDecorator
+from managed_repo import ManagedRepoList
 
 # For Pydantic   :  https://docs.pydantic.dev/latest/
 # For GitPython  :  https://gitpython.readthedocs.io/en/stable/intro.html
 # For tqdm       :  https://tqdm.github.io/
 
 
-# -----------------------
-
-
-@total_ordering
-class ManagedRepo(BaseModel):
-    local_dir: str
-    repo_url: str
-
-    def _is_valid_operand(self: Self, other: Any):
-        return hasattr(other, "local_dir") and hasattr(other, "repo_url")
-
-    def __eq__(self: Self, other: Any):
-        if not self._is_valid_operand(other):
-            return NotImplemented
-        return (
-            self.local_dir.lower(),
-            self.repo_url.lower(),
-        ) == (
-            other.local_dir.lower(),
-            other.repo_url.lower(),
-        )
-
-    def __lt__(self: Self, other: Any):
-        if not self._is_valid_operand(other):
-            return NotImplemented
-        return (
-            self.local_dir.lower(),
-            self.repo_url.lower(),
-        ) < (
-            other.local_dir.lower(),
-            other.repo_url.lower(),
-        )
-
-
-# -----------------------
-
-
-class ManagedRepoList:
-
-    @staticmethod
-    def __read_lines_from_file(filename: str) -> list[str]:
-        """All lines from a file."""
-        with open(filename) as f:
-            return [line for line in f]
-
-    @staticmethod
-    def __read_repos_from_csv_file(filename: str) -> list[ManagedRepo]:
-        """All repositories in CSV file."""
-        all_lines_read: list[str] = ManagedRepoList.__read_lines_from_file(filename)
-        # Remove blank lines and comments
-        clean_lines: list[str] = [
-            line
-            for line in [line.strip() for line in all_lines_read]
-            if not line.startswith("#")  # no comments
-            if not len(line) == 0  # no empty lines
-        ]
-        # Process CSV lines as `local_dir,repo_url`
-        return [
-            ManagedRepo(
-                local_dir=t[0].strip(),
-                repo_url=t[1].strip(),
-            )
-            for t in [line.split(",") for line in clean_lines]
-        ]
-
-    @staticmethod
-    def read_repos_from_csv_file(filename: str):
-        repos = ManagedRepoList.__read_repos_from_csv_file(filename)
-        return ManagedRepoList(repos)
-
-    # ---
-
-    def __init__(self: Self, repos: list[ManagedRepo]):
-        self._repos = repos
-
-    def __len__(self: Self) -> int:
-        return len(self._repos)
-
-    def __iter__(self: Self):
-        return self._repos.__iter__()
-
-    # ---
-
-    @property
-    def max_name_len(self: Self) -> int:
-        """Maximum length of ``local_dir`` for managed repositories."""
-        return max([len(r.local_dir) for r in self._repos])
-
-    def is_local_dir_managed(
-        self: Self,
-        local_dir: str,
-    ) -> bool:
-        """
-        ``True`` if argument path is in initial argument list of managed repositories;
-        ``False`` otherwise.
-        """
-        for r in self._repos:
-            if r.local_dir == local_dir:
-                return True
-        return False
-
-    def clone_managed_repos(
-        self: Self,
-        ignore_error: bool = False,
-    ) -> None:
-        """
-        Traververse initial argument list of managed repositories
-        and if any repository is not present (as a directory) then clone it.
-        """
-        pbar: tqdm = tqdm(self._repos, desc="Clone", unit="rp")
-        max_len: int = self.max_name_len
-        for managed_repo in pbar:
-            pbar.set_description(f"Clone: {managed_repo.local_dir.ljust(max_len)}")
-            repo_url: str = managed_repo.repo_url
-            rel_local_dir: str = (
-                f"../{managed_repo.local_dir}"  # hardcode - use parent always
-            )
-            if not os.path.isdir(rel_local_dir):
-                pbar.set_description(f"CLONE: {managed_repo.local_dir.ljust(max_len)}")
-                try:
-                    _ = Repo.clone_from(repo_url, rel_local_dir)
-                except Exception as e:
-                    if not ignore_error:
-                        raise e
-
-            pbar.set_description(f"Clone: {''.ljust(max_len)}")
-
-    def fetch_remotes(
-        self: Self,
-        ignore_error: bool = False,
-    ) -> None:
-        """
-        Traververse initial argument list of managed repositories
-        and fetch any remotes.
-        """
-        pbar: tqdm = tqdm(self._repos, desc="Fetch", unit="rp")
-        max_len: int = self.max_name_len
-        for managed_repo in pbar:
-            pbar.set_description(f"Fetch: {managed_repo.local_dir.ljust(max_len)}")
-            rel_repo_dir = managed_repo.local_dir
-            repo = Repo(f"../{rel_repo_dir}")
-            try:
-                for remote in repo.remotes:
-                    remote.fetch()
-            except Exception as e:
-                if not ignore_error:
-                    raise e
-            pbar.set_description(f"Fetch: {''.ljust(max_len)}")
-
-
-# -----------------------
-
-
 # TODO Don't use color names - instead use decoration functions like: `decorate_color_as_missing_repo`
-
-
-class ColorDecorator:
-
-    def __init__(
-        self: Self,
-        use_colors: bool = True,
-    ):
-        self._use_colors = use_colors
-
-    # YELLOW
-
-    def bright_yellow_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.YELLOW}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # RED
-
-    def bright_red_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.RED}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # BLUE
-
-    def bright_blue_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.BLUE}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # GREEN
-
-    def bright_green_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.GREEN}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # WHITE
-
-    def bright_white_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    def dim_white_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
-
-    # CYAN
-
-    def dim_cyan_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
-
-    def bright_cyan_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.CYAN}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # MAGENTA
-
-    def bright_magenta_text(
-        self: Self,
-        text: str,
-    ) -> str:
-        return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Fore.RESET}"
-
-    # ===
-
-    def error(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.bright_magenta_text(text)
-
-    def neutral(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.dim_white_text(text)
-
-    def not_a_repository(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.bright_red_text(text)
-
-    def local_and_remote_identical(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.dim_white_text(text)
-
-    def local_and_remote_different(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.bright_red_text(text)
-
-    def active_head(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.bright_green_text(text)
-
-    def inactive_head(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.dim_white_text(text)
-
-    def managed_repo(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.bright_green_text(text)
-
-    def unmanaged_repo(
-        self: Self,
-        text: str,
-    ) -> str:
-        return self.dim_white_text(text)
 
 
 # -----------------------
@@ -332,7 +49,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     # Table headers
 
-    SUMMARY = "M?UD>"
+    SUMMARY = "M?UD!"
     DIR: str = "Local Directory"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
@@ -479,7 +196,7 @@ def print_repos(
                 col_latest_commit_is_pushed: str = (
                     color_decorator.local_and_remote_identical(".")
                     if latest_commit_is_pushed(repo)
-                    else color_decorator.local_and_remote_different(">")
+                    else color_decorator.local_and_remote_different("!")
                 )
 
             else:
