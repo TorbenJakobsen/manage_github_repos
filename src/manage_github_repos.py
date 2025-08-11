@@ -56,7 +56,7 @@ def prepare_table_for_print_repos() -> PrettyTable:
 
     # Table headers
 
-    SUMMARY = "M?UD!"
+    SUMMARY = "MRUDC"
     DIR: str = "Local Directory"
     HEADS = "Heads"
     UNTRACKED_FILES: str = "Unt"
