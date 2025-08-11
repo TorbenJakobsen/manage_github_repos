@@ -7,9 +7,27 @@ class ColorDecorator:
 
     def __init__(
         self: Self,
-        use_colors: bool = True,
+        use_colors: bool = False,
     ):
-        self._use_colors = use_colors
+        self._use_colors = bool(use_colors)
+
+    def decorate_text(
+        self: Self,
+        text: str | None,
+        fore,
+        style,
+    ) -> str | None:
+        if text is None:
+            return None
+        text_str = str(text)
+        if len(text_str.strip()) == 0:
+            return text_str
+        if not self._use_colors:
+            return text_str
+        if style is None:
+            return f"{fore}{text_str}{Fore.RESET}"
+
+        return f"{fore}{style}{text_str}{Fore.RESET}"
 
     # YELLOW
 
@@ -17,7 +35,7 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.YELLOW}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.YELLOW, Style.BRIGHT)
 
     # RED
 
@@ -25,7 +43,7 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.RED}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.RED, Style.BRIGHT)
 
     # BLUE
 
@@ -33,7 +51,7 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.BLUE}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.BLUE, Style.BRIGHT)
 
     # GREEN
 
@@ -41,7 +59,7 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.GREEN}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.GREEN, Style.BRIGHT)
 
     # WHITE
 
@@ -49,13 +67,13 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.WHITE}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.WHITE, Style.BRIGHT)
 
     def dim_white_text(
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.WHITE}{Style.DIM}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.WHITE, Style.DIM)
 
     # CYAN
 
@@ -63,13 +81,13 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.CYAN}{Style.DIM}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.CYAN, Style.DIM)
 
     def bright_cyan_text(
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.CYAN}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.CYAN, Style.BRIGHT)
 
     # MAGENTA
 
@@ -77,7 +95,7 @@ class ColorDecorator:
         self: Self,
         text: str,
     ) -> str:
-        return f"{Fore.MAGENTA}{Style.BRIGHT}{text}{Fore.RESET}"
+        return self.decorate_text(text, Fore.MAGENTA, Style.BRIGHT)
 
     # ===
 

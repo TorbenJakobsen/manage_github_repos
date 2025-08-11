@@ -86,7 +86,8 @@ def print_repos(
     dir_list: list[str],
     repos: ManagedRepoList,
 ) -> None:
-    color_decorator: ColorDecorator = ColorDecorator(True)
+    USE_COLOR: bool = True
+    color_decorator: ColorDecorator = ColorDecorator(USE_COLOR)
     pretty_repo_table: PrettyTable = prepare_table_for_print_repos()
 
     max_len = 20  # TODO calculate
