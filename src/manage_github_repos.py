@@ -5,7 +5,7 @@ manage_github_repos
 import os
 
 from colorama import init as colorama_init
-from git import InvalidGitRepositoryError, Remote, Repo
+from git import Commit, InvalidGitRepositoryError, Remote, Repo
 from prettytable import PrettyTable
 from tqdm import tqdm
 
@@ -28,20 +28,27 @@ from managed_repo import ManagedRepoList
 # TODO Use of colors assume dark (black) background
 
 
-def latest_commit_is_pushed(repo: Repo) -> bool:
+def compare_latest_commits(repo: Repo) -> int:
     """
-    Local and remote (origin) are the same.
+    Compares local and remote (origin).
 
     :param repo: local repository to check
     :type repo: Repo
-    :return: ``True`` if local and remote are the same; ``False`` otherwise
-    :rtype: bool
+    :return: ``0`` if local and remote are the same; -1 if local is behind, 1 if local is ahead
+    :rtype: int
     """
     remote: Remote = repo.remote("origin")
     remote.fetch()
-    latest_remote_commit = remote.refs[repo.active_branch.name].commit
-    latest_local_commit = repo.head.commit
-    return latest_local_commit == latest_remote_commit
+    latest_remote_commit: Commit = remote.refs[repo.active_branch.name].commit
+    latest_local_commit: Commit = repo.head.commit
+    if latest_local_commit == latest_remote_commit:
+        return 0
+    if latest_local_commit.committed_datetime < latest_remote_commit.committed_datetime:
+        return -1
+    # Fall through
+    return 1
+
+    # TODO Compare timestamps for comits
 
 
 def prepare_table_for_print_repos() -> PrettyTable:
@@ -193,10 +200,15 @@ def print_repos(
 
                 col_text_heads: str = ", ".join(colored_head_names)
 
+                compare_repo_commits = compare_latest_commits(repo)
                 col_latest_commit_is_pushed: str = (
                     color_decorator.local_and_remote_identical(".")
-                    if latest_commit_is_pushed(repo)
-                    else color_decorator.local_and_remote_different("!")
+                    if compare_repo_commits == 0
+                    else (
+                        color_decorator.local_and_remote_different("<")
+                        if compare_repo_commits == -1
+                        else color_decorator.local_and_remote_different(">")
+                    )
                 )
 
             else:
