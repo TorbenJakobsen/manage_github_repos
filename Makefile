@@ -10,7 +10,7 @@ COVERAGE=./venv/bin/coverage
 RSTCHECK=./venv/bin/rstcheck
 
 venv/bin/activate:
-	python3.11 -m venv venv
+	python3.13 -m venv venv
 	. ./venv/bin/activate
 	$(PYTHON) -m pip install --upgrade pip setuptools
 	$(PYTHON) -m pip install -r requirements.txt
