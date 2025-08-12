@@ -5,3 +5,4 @@ venv
 
 config/repos.csv
 !config/example.csv
+_trash

@@ -150,6 +150,9 @@ You will end in the ``manage_github_repos`` directory.
 
 The meaning of colors ... TODO
 
+.. image:: ./media/repos_symbols.png
+  :width: 800
+
 Oh-my-posh
 ----------
 
